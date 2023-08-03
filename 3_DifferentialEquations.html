@@ -14559,12 +14559,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
                 },
                 displayAlign: 'center',
                 CommonHTML: {
-                    linebreaks: {
-                    automatic: true
+                    linebreaks: { 
+                    automatic: true 
                     }
                 }
             });
-
+        
             MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
         }
     }
@@ -14794,6 +14794,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>Below, we run the model with the different methods, comparing convergence to the true, analytical solution at $\delta\in\{2^{-2}, 2^{-3}, \dots 2^{-10}\}$, simulating 1 unit time step. We start from $\delta = \frac{1}{4}$ rather than $\frac{1}{2}$, as this value would lead to oscillations and therefore large errors using the explicit euler scheme (due to $1-3\delta&lt;0$).</p>
+<p>As an output, the code prints the current value of $\delta$, and then the errors and error rations for all three schemes. Note the error ration in particular. It tells you by which factor the error is decreased as the time increment $\delta$ is halved. If your solutions are correct, the error ratio for both Euler schemes should quickly converge to 2. That means that the error is halved when we halve $\delta$. This is called <em>first-order convergence</em>, because the approximation approaches the true value at a speed that is proportional to the changes in the time increments.</p>
+<p>The error ratio of the Crank-Nicolson method converges to 4, if your solution are correct. That means that if we cut $\delta$ in half, the error is reduced to a quarter of its original value. This is called <em>second-order convergence</em>.</p>
 
 </div>
 </div>
@@ -14840,11 +14842,11 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     <span class="n">cn_error</span> <span class="o">=</span> <span class="n">p_cn</span> <span class="o">-</span> <span class="n">p_analytical</span>
     
     <span class="c1"># convergence</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'delta = 1/</span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s1">:'</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Explicit Euler scheme error = </span><span class="si">{</span><span class="n">ee_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">ee_last_error</span> <span class="o">/</span> <span class="n">ee_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Implicit Euler scheme error = </span><span class="si">{</span><span class="n">ie_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">ie_last_error</span> <span class="o">/</span> <span class="n">ie_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Crank-Nicolson scheme error = </span><span class="si">{</span><span class="n">cn_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">cn_last_error</span> <span class="o">/</span> <span class="n">cn_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;delta = 1/</span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s1">:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Explicit Euler scheme error = </span><span class="si">{</span><span class="n">ee_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">ee_last_error</span> <span class="o">/</span> <span class="n">ee_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Implicit Euler scheme error = </span><span class="si">{</span><span class="n">ie_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">ie_last_error</span> <span class="o">/</span> <span class="n">ie_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Crank-Nicolson scheme error = </span><span class="si">{</span><span class="n">cn_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">cn_last_error</span> <span class="o">/</span> <span class="n">cn_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14852,18 +14854,6 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>By observing the error ratios, we can analyse asymptotic behaviour of these timestepping schemes. Using Euler methods, the errors are halved if the step sized is halved, so errors will be proportional to $\delta$ (first-order convergence). Applying the Crank-Nicolson method, the new error is around four times smaller as $\delta$ is halved, i.e. we achieve much faster convergence (second order). That means we can use larger values of $\delta$ and still obtain the same accuracy, leading to much higher computational efficiency (fewer calculations for the same outcome).</p>
-
-</div>
-</div>
-</div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">

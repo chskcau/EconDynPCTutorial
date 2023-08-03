@@ -14579,8 +14579,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="3-Differential-Equations">3 Differential Equations<a class="anchor-link" href="#3-Differential-Equations">&#182;</a></h1><p>The key difference between difference equations and differential equations is that the former model a system in discrete time, i.e. the evolution between one point in time and the next, while the latter model a system in continuous time. This raises an im portant issue for simulations of such models: computers only work in discrete states (1 &amp; 0, ultimately), so "true" continuity cannot be implemented. Hence, we have to wok with approximations. Usually that creates a trade-off between accuracy (how close is the solutions to the true, e.g. analytically derived solution?) and computational efficiency (how much work does the computer  have to do, and how long is it going to take?).</p>
-<p>In this tutorial, three different timestepping methods will be introduced:  explicit &amp; implicit Euler methods, as we  as the Crank-Nicolson method. You will write functions to simulate the behaviour of a first-order differential equation. The results will be plotted, and we will analyse efficiency and accuracy of the methods.</p>
+<h1 id="3-Differential-Equations">3 Differential Equations<a class="anchor-link" href="#3-Differential-Equations">&#182;</a></h1><p>The key difference between difference equations and differential equations is that the former model a system in discrete time, i.e. the evolution between one point in time and the next, while the latter model a system in continuous time. This raises an important issue for simulations of such models: computers only work in discrete states (1 &amp; 0, ultimately), so "true" continuity cannot be implemented. Hence, we have to wok with approximations. Usually that creates a trade-off between accuracy (how close is the solutions to the true, e.g. analytically derived solution?) and computational efficiency (how much work does the computer  have to do, and how long is it going to take?).</p>
+<p>In this tutorial, three different timestepping methods will be introduced:  explicit &amp; implicit Euler methods, as we  as the Crank-Nicolson method. You will write functions to simulate the behaviour of a first-order differential equation. Instead of plotting the results, we will analyse efficiency and accuracy of the methods this time.</p>
 
 </div>
 </div>
@@ -14590,7 +14590,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[20]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -14608,9 +14608,9 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Taylor-expansion,-difference-quotient">Taylor expansion, difference quotient<a class="anchor-link" href="#Taylor-expansion,-difference-quotient">&#182;</a></h3><p>Differential equations are of the basic form</p>
+<h3 id="Taylor-expansion,-finite-differences">Taylor expansion, finite differences<a class="anchor-link" href="#Taylor-expansion,-finite-differences">&#182;</a></h3><p>Differential equations are of the basic form</p>
 <p>$\frac{\partial y}{\partial t} = y'(t) = f(y(t), t)$,</p>
-<p>i.e. the rate of change of $y$, its time derivative is a function of $y$ itself, and sometimes time as well. In order to simulate one time step of size $\delta$, we can apply a Taylor expansion and rearrange in the following way:</p>
+<p>i.e. the rate of change of $y$, its time derivative is a function of $y$ itself, and sometimes time as well. In order to simulate one time step of size $\delta$, apply a second-order Taylor expansion and rearrange in the following way:</p>
 <p>$y(t+\delta) = y(t) + \delta y'(t) + \frac{\delta^2}{2}y''(\eta)$</p>
 <p>$\frac{y(t+\delta) - y(t)}{\delta} = y'(t) + \frac{\delta^2}{2}y''(\eta)$</p>
 <p>with $\eta\in[t, t+\delta]$. The difference quotient on the left-hand side converges to $y'(t)$ as $\delta\rightarrow 0$.</p>
@@ -14622,8 +14622,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <p>$y(1) = y(0) + \delta f(y(0), 0)$</p>
 <p>$\vdots$</p>
 <p>$y(t+1) = y(t) + \delta f(y(t),t)$</p>
-<p>There is a small error, since this is only an approximation, but the smaller $\delta$, the higher the accuracy we achieve. On the other hand, with smaller $\delta$, we need more time steps, leading to higher computational effort, as more calculations have to be performed.</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement one time step of the continuous time cobweb model (tutorial 3, exercise 2) using this scheme! It should take the current price $p$, as well as the size of the timestep $\delta$ as inputs and return the estimated new price.</p>
+<p>There is a small error related to the higher order terms of the Taylor expansion, but the smaller $\delta$, the higher the accuracy we achieve. On the other hand, with smaller $\delta$, we need more time steps, leading to higher computational effort, as more calculations have to be performed.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Consider the continuous-time version of the cobweb model (tutorial 3, exercise 2), leading to the first-order differential equation $p'=45 - 3p$. Implement one time step using this scheme! It should take the current price $p$, as well as the size of the timestep $\delta$ as inputs and return the estimated new price.</p>
 
 </div>
 </div>
@@ -14633,7 +14633,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[69]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">exp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
@@ -14655,7 +14655,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="Implicit-Euler">Implicit Euler<a class="anchor-link" href="#Implicit-Euler">&#182;</a></h3><p>Consider the exponential function $y(t) = e^{-\lambda T}$, which satisfies $y'(t) = -\lambda y(t)$. Simulating it with the explicit Euler method would yield the following timestepping scheme:</p>
-<p>$y(t+\delta) = y(t) -\lambda y(t) = (1-\delta\lambda)y(t)$</p>
+<p>$y(t+\delta) \approx y(t) -\lambda y(t) = (1-\delta\lambda)y(t)$</p>
 <p>which creates ocillations if $\delta\lambda&gt;1$ (first-order difference equation with negative eigenvalue). This only happens due to the discretisation of an otherwise continuous system, and is hence undesirable. A solution is the implicit Euler method:</p>
 <p>$\frac{y(t+\delta) - y(t)}{\delta} \approx y'(t+\delta) = f(y(t+\delta),t+\delta)$</p>
 <p>$\Leftrightarrow y(t+\delta) \approx y(t) + \delta f(y(t+\delta), t+\delta)$</p>
@@ -14672,7 +14672,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[70]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">imp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
@@ -14706,7 +14706,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[71]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">cn_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
@@ -14741,7 +14741,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[72]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">simulate_cobweb</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">timestep_func</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
@@ -14773,7 +14773,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[73]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># analytical solution</span>
@@ -14798,12 +14798,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[87]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">ee_final</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
@@ -14850,76 +14850,6 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
      </div>
 </div>
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>delta = 1/4:
-Explicit Euler scheme error = -2.065e+00, error ratio = -4.84e-01
-Implicit Euler scheme error = 2.558e+00, error ratio = 3.91e-01
-Crank-Nicolson scheme error = -3.194e-01, error ratio = -3.13e+00
-
-
-delta = 1/8:
-Explicit Euler scheme error = -1.193e+00, error ratio = 1.73e+00
-Implicit Euler scheme error = 1.282e+00, error ratio = 2.00e+00
-Crank-Nicolson scheme error = -7.904e-02, error ratio = 4.04e+00
-
-
-delta = 1/16:
-Explicit Euler scheme error = -6.172e-01, error ratio = 1.93e+00
-Implicit Euler scheme error = 6.375e-01, error ratio = 2.01e+00
-Crank-Nicolson scheme error = -1.971e-02, error ratio = 4.01e+00
-
-
-delta = 1/32:
-Explicit Euler scheme error = -3.122e-01, error ratio = 1.98e+00
-Implicit Euler scheme error = 3.172e-01, error ratio = 2.01e+00
-Crank-Nicolson scheme error = -4.924e-03, error ratio = 4.00e+00
-
-
-delta = 1/64:
-Explicit Euler scheme error = -1.569e-01, error ratio = 1.99e+00
-Implicit Euler scheme error = 1.581e-01, error ratio = 2.01e+00
-Crank-Nicolson scheme error = -1.231e-03, error ratio = 4.00e+00
-
-
-delta = 1/128:
-Explicit Euler scheme error = -7.861e-02, error ratio = 2.00e+00
-Implicit Euler scheme error = 7.891e-02, error ratio = 2.00e+00
-Crank-Nicolson scheme error = -3.077e-04, error ratio = 4.00e+00
-
-
-delta = 1/256:
-Explicit Euler scheme error = -3.934e-02, error ratio = 2.00e+00
-Implicit Euler scheme error = 3.942e-02, error ratio = 2.00e+00
-Crank-Nicolson scheme error = -7.692e-05, error ratio = 4.00e+00
-
-
-delta = 1/512:
-Explicit Euler scheme error = -1.968e-02, error ratio = 2.00e+00
-Implicit Euler scheme error = 1.970e-02, error ratio = 2.00e+00
-Crank-Nicolson scheme error = -1.923e-05, error ratio = 4.00e+00
-
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>

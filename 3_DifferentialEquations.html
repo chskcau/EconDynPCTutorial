@@ -14559,12 +14559,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
                 },
                 displayAlign: 'center',
                 CommonHTML: {
-                    linebreaks: { 
-                    automatic: true 
+                    linebreaks: {
+                    automatic: true
                     }
                 }
             });
-        
+
             MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
         }
     }
@@ -14580,7 +14580,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h1 id="3-Differential-Equations">3 Differential Equations<a class="anchor-link" href="#3-Differential-Equations">&#182;</a></h1><p>The key difference between difference equations and differential equations is that the former model a system in discrete time, i.e. the evolution between one point in time and the next, while the latter model a system in continuous time. This raises an important issue for simulations of such models: computers only work in discrete states (1 &amp; 0, ultimately), so "true" continuity cannot be implemented. Hence, we have to wok with approximations. Usually that creates a trade-off between accuracy (how close is the solutions to the true, e.g. analytically derived solution?) and computational efficiency (how much work does the computer  have to do, and how long is it going to take?).</p>
-<p>In this tutorial, three different timestepping methods will be introduced:  explicit &amp; implicit Euler methods, as we  as the Crank-Nicolson method. You will write functions to simulate the behaviour of a first-order differential equation. Instead of plotting the results, we will analyse efficiency and accuracy of the methods this time.</p>
+<p>In this tutorial, two different timestepping methods will be introduced:  explicit Euler method and the Runge's central difference quotient method. You will write functions to simulate the behaviour of a first-order differential equation. We can then compare the accuracy of both solutions by calculating the errors relative to the analytical solution, and also plot the behaviour of the system over time.</p>
 
 </div>
 </div>
@@ -14593,7 +14593,14 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> notebook
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># this renders text in figures in Latex font</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">rc</span>
+<span class="n">rc</span><span class="p">(</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14628,6 +14635,19 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h5 id="SOLUTION">SOLUTION<a class="anchor-link" href="#SOLUTION">&#182;</a></h5><p>We have the differential equation $p'=45 - 3p$. The timestepping scheme then reads</p>
+<p>$p_{t+\delta} = p_t + \delta p' = p_t + \delta(45-3p_t) = (1-3\delta)p_t+45\delta$</p>
+
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -14637,9 +14657,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">exp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14654,15 +14672,25 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Implicit-Euler">Implicit Euler<a class="anchor-link" href="#Implicit-Euler">&#182;</a></h3><p>Consider the exponential function $y(t) = e^{-\lambda T}$, which satisfies $y'(t) = -\lambda y(t)$. Simulating it with the explicit Euler method would yield the following timestepping scheme:</p>
-<p>$y(t+\delta) \approx y(t) -\lambda y(t) = (1-\delta\lambda)y(t)$</p>
-<p>which creates ocillations if $\delta\lambda&gt;1$ (first-order difference equation with negative eigenvalue). This only happens due to the discretisation of an otherwise continuous system, and is hence undesirable. A solution is the implicit Euler method:</p>
-<p>$\frac{y(t+\delta) - y(t)}{\delta} \approx y'(t+\delta) = f(y(t+\delta),t+\delta)$</p>
-<p>$\Leftrightarrow y(t+\delta) \approx y(t) + \delta f(y(t+\delta), t+\delta)$</p>
-<p>I.e. we move along the tangent slope of the next point instead of the current. The actual timestepping scheme is given implicitly as the solution to a fixed-point problem. In the example of the exponential function above:</p>
-<p>$y(t+\delta) = y(t) -\lambda y(t) = (1-\delta\lambda)y(t+\delta)$</p>
-<p>$\Leftrightarrow y(t+\delta) = \frac{1}{1+\delta\lambda}y(t)$</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement a single time step of the implicit Euler method for the same cobweb model as above. Note that you will first have to solve the fixed-point problem for this particular function.</p>
+<h3 id="Central-difference-quotient">Central difference quotient<a class="anchor-link" href="#Central-difference-quotient">&#182;</a></h3><p>Instead of applying a Taylor expansion around the point $y(t)$ to approximate $y(t+\delta)$, we can apply the Taylor expansion in the mid-point between the two, i.e. at $y(t+\frac{\delta}{2})$. In that case we obtain expressions for both $y(t)$ and $y(t+\delta)$:</p>
+<p>$\begin{align}
+    y(t) &amp;\approx y(t+\frac{\delta}{2}) + \frac{\delta}{2}y'(t+\frac{\delta}{2}) + \frac{\delta^2}{8}y''(\frac{\delta}{2}) + \frac{\delta^3}{48}y'''(\eta_+), \hspace{0.5cm}\text{and}\\
+    y(t+\delta) &amp;\approx y(t+\frac{\delta}{2}) - \frac{\delta}{2}y'(t+\frac{\delta}{2}) + \frac{\delta}{8^2}y''(\frac{\delta}{2}) - \frac{\delta^3}{48}y'''(\eta_-)
+\end{align}$</p>
+<p>with $\eta_+\in [t, t+\frac{\delta}{2}]$ and $\eta_+\in [t+\frac{\delta}{2}, t+\delta]$.</p>
+<p>Taking the difference of both:</p>
+<p>$\begin{align}
+    y(t+\delta) - y(t) &amp;= \delta y'(t + \frac{\delta}{2}) +  \frac{\delta^3}{24}y'''(\eta)\\
+    \frac{y(t+\delta)-y(t)}{\delta} &amp;= y'(t + \frac{\delta}{2}) +  \frac{\delta^2}{24}y'''(\eta)
+\end{align}$</p>
+<p>with $\eta\in[t, t+\delta]$. While using the standard difference quotient (as in Euler's method) yields an error that is proportional to $\delta$, a method based on the central difference quotient will produce errors proportional to $\delta^2$, which is much smaller (considering $\delta&lt;1$). This is the idea behind the method of Runge.</p>
+<h3 id="Runge's-method">Runge's method<a class="anchor-link" href="#Runge's-method">&#182;</a></h3><p>Use the central difference quotient to implement a timestepping method:</p>
+<p>$\begin{align}
+    \frac{y(t+\delta)-y(t)}{\delta} &amp;\approx y'(t+\frac{\delta}{2})\\
+    \Leftrightarrow y(t+\delta) &amp;\approx y(t) + \delta y'(t+\frac{\delta}{2})
+\end{align}$</p>
+<p>Of course we do not know $y(t+\frac{\delta}{2})$, but we can simply approximate it with an explicit Euler step of size $\frac{\delta}{2}$. From the second step onwards, we can re-use the values we already calculated in the previous step.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement a single step of Runge's method for the continuous-time cobweb model! You will have to calculate the midpoint state by implementing a single Euler step of size $\delta/2$ to calculate the next step. you can use the function you created above for that purpose.</p>
 
 </div>
 </div>
@@ -14675,10 +14703,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">imp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">runge_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14693,11 +14719,23 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Crank-Nicolson">Crank-Nicolson<a class="anchor-link" href="#Crank-Nicolson">&#182;</a></h3><p>The last method to be introduced in this tutorial is the Crank-Nicolson method. There are more of course but these shall suffice for an introduction. Instead of using either the tangent slope at the current point, or that at the next, it takes the mean of both:</p>
-<p>$y(t+\delta) = y(t) +  \frac{\delta}{2}\left[f\left(y\left(t\right), t\right) + f\left(y\left(t+\delta\right), t+\delta\right)\right]$</p>
-<p>As the values at the next time step are on both sides, this is also an implicit scheme that requires finding the solution to a fixed-point equation.</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement one time step of the Crank-Nicolson method for the cobweb model!</p>
+<h3 id="Simulation">Simulation<a class="anchor-link" href="#Simulation">&#182;</a></h3><p>Ultimately, we are not interested in tiny steps of a model, but longer time series and the convergence to equilibrium, or divergence to $\pm\infty$. Hence, in the next step, your task will be to implement many of those single steps in a row. Both functions for single steps are using the same structure of inputs <code>p</code> and <code>delta</code>, and an output of the price after one incremental time step, so we can write a function that can flexibly apply either timestepping method.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Complete the function below to simulate the cobweb model. They both take an initial value <code>p</code>, the number of unit steps <code>T</code>, and the number of increments per unit step, <code>n</code>. Hint: $n=1/\delta$. They should not return a whole timeseries of values, but only the final value at time $T$. The final input is a function object, <code>timestep_func</code>. In Python (as in many other programming languages), you can pass a function as an input to another functiuon. We do not evaluate it (no parentheses, but we apply it later in the code block of the function we are writing in the following way:</p>
+<p><code>def my_func(other_func, a):</code></p>
+<p><code>other_func(a)</code></p>
+<p>In the same way, you can run the timestep_func with inputs <code>p</code> and <code>delta</code> inside the function that simulates a series of steps, <code>simulate_cobweb</code>.</p>
 
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h5 id="SOLUTION">SOLUTION<a class="anchor-link" href="#SOLUTION">&#182;</a></h5>
 </div>
 </div>
 </div>
@@ -14709,10 +14747,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">cn_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">simulate_cobweb</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">timestep_func</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14720,54 +14756,6 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Simulating-the-system">Simulating the system<a class="anchor-link" href="#Simulating-the-system">&#182;</a></h3><p>Now, we can apply either of these three functions to simulate the system and compare convergence. Write a single function that takes as inputs a starting price $p$, and a function. You can pass a function as an argument to a function in the following way:</p>
-<p><code>def my_func(func, a):</code></p>
-<p><code>func(a)</code></p>
-<p>my_func is a function that takes as inputs a function object <code>func</code> (no parentheses!), and a parameter <code>a</code> and then runs the function <code>func</code> with input <code>a</code>. In the same way, you can build a cobweb model simulator that can flexibly switch between timestepping schemes. Other inputs are the current price, and the number of steps $T$ to be performed.</p>
-<p>Note that $\delta$ is typically a very small step, a fraction of a time unit. Write the function such that its output is the price after one full time unit, while the parameter $T$ is the number of steps this unit should be divided into. Hence, in the first step, you have to calculate $\delta$ as the inverse of $T$. Do not store the intermediate values of $p$, but overwrite it in every step and only return the final value. Later, we can use this function to simulate several timesteps, storing only the values after a full period has passed.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">simulate_cobweb</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">timestep_func</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We'll want to compare our approximations to the "true" analytical solution. From the tutorial:</p>
-<p>$p(t) = (p_0 - \bar{p})e^{-3t} + 15$</p>
-
-</div>
-</div>
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -14777,8 +14765,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># analytical solution</span>
-<span class="k">def</span> <span class="nf">cobweb_1period</span><span class="p">(</span><span class="n">p_0</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">p_0</span> <span class="o">-</span> <span class="mi">15</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mi">15</span>
+<span class="k">def</span> <span class="nf">cobweb_1period</span><span class="p">(</span><span class="n">p_0</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">p_0</span> <span class="o">-</span> <span class="mi">15</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="mi">15</span>
 </pre></div>
 
      </div>
@@ -14793,9 +14781,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Below, we run the model with the different methods, comparing convergence to the true, analytical solution at $\delta\in\{2^{-2}, 2^{-3}, \dots 2^{-10}\}$, simulating 1 unit time step. We start from $\delta = \frac{1}{4}$ rather than $\frac{1}{2}$, as this value would lead to oscillations and therefore large errors using the explicit euler scheme (due to $1-3\delta&lt;0$).</p>
-<p>As an output, the code prints the current value of $\delta$, and then the errors and error rations for all three schemes. Note the error ration in particular. It tells you by which factor the error is decreased as the time increment $\delta$ is halved. If your solutions are correct, the error ratio for both Euler schemes should quickly converge to 2. That means that the error is halved when we halve $\delta$. This is called <em>first-order convergence</em>, because the approximation approaches the true value at a speed that is proportional to the changes in the time increments.</p>
-<p>The error ratio of the Crank-Nicolson method converges to 4, if your solution are correct. That means that if we cut $\delta$ in half, the error is reduced to a quarter of its original value. This is called <em>second-order convergence</em>.</p>
+<p>Below we compare the behaviour of both methods in terms of their errors and convergence towards the true value, as calculated with the analytical solution (see Tutorial). We iterate through decreasing values of $\delta\in\{2^{-2}, 2^{-3}, \dots 2^{-10}\}$, halving it every step, i.e. doubling the amount of time increments per unit time steps.</p>
 
 </div>
 </div>
@@ -14808,45 +14794,41 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ee_final</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-<span class="n">ie_final</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-<span class="n">cn_final</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-
-<span class="n">p0</span> <span class="o">=</span> <span class="mi">60</span>
-<span class="n">p_analytical</span> <span class="o">=</span> <span class="n">cobweb_1period</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">p0</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">p_analytical</span> <span class="o">=</span> <span class="n">cobweb_1period</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
 
 <span class="c1"># errors</span>
 <span class="n">ee_error</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">ie_error</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">cn_error</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">rg_error</span> <span class="o">=</span> <span class="mi">1</span>
 
 <span class="c1"># analyse convergence, doubling the number of steps per time unit</span>
-<span class="k">for</span> <span class="n">exponent</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">10</span><span class="p">):</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">exponent</span>
+<span class="k">for</span> <span class="n">exponent</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">exponent</span>
     <span class="c1"># update last period errors</span>
     <span class="n">ee_last_error</span> <span class="o">=</span> <span class="n">ee_error</span>
-    <span class="n">ie_last_error</span> <span class="o">=</span> <span class="n">ie_error</span>
-    <span class="n">cn_last_error</span> <span class="o">=</span> <span class="n">cn_error</span>
+    <span class="n">rg_last_error</span> <span class="o">=</span> <span class="n">rg_error</span>
     
     <span class="c1"># starting prices</span>
-    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">p_ie</span> <span class="o">=</span> <span class="n">p_cn</span> <span class="o">=</span> <span class="n">p0</span>
+    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">p_rg</span> <span class="o">=</span> <span class="n">p0</span>
     
     <span class="c1"># calculate solutions</span>
-    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_ee</span><span class="p">,</span> <span class="n">exp_euler_1step</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-    <span class="n">p_ie</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_ie</span><span class="p">,</span> <span class="n">imp_euler_1step</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-    <span class="n">p_cn</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_cn</span><span class="p">,</span> <span class="n">cn_1step</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_ee</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">exp_euler_1step</span><span class="p">)</span>
+    <span class="n">p_rg</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_rg</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">runge_1step</span><span class="p">)</span>
     
     <span class="c1"># new errors</span>
     <span class="n">ee_error</span> <span class="o">=</span> <span class="n">p_ee</span> <span class="o">-</span> <span class="n">p_analytical</span>
-    <span class="n">ie_error</span> <span class="o">=</span> <span class="n">p_ie</span> <span class="o">-</span> <span class="n">p_analytical</span>
-    <span class="n">cn_error</span> <span class="o">=</span> <span class="n">p_cn</span> <span class="o">-</span> <span class="n">p_analytical</span>
+    <span class="n">rg_error</span> <span class="o">=</span> <span class="n">p_rg</span> <span class="o">-</span> <span class="n">p_analytical</span>
     
     <span class="c1"># convergence</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;delta = 1/</span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s1">:&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Explicit Euler scheme error = </span><span class="si">{</span><span class="n">ee_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">ee_last_error</span> <span class="o">/</span> <span class="n">ee_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Implicit Euler scheme error = </span><span class="si">{</span><span class="n">ie_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">ie_last_error</span> <span class="o">/</span> <span class="n">ie_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Crank-Nicolson scheme error = </span><span class="si">{</span><span class="n">cn_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">, error ratio = </span><span class="si">{</span><span class="n">cn_last_error</span> <span class="o">/</span> <span class="n">cn_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'delta = 1/</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">:'</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'Explicit Euler scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_ee</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">; error = </span><span class="si">{</span><span class="n">ee_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">; error ratio = </span><span class="si">{</span><span class="n">ee_last_error</span> <span class="o">/</span> <span class="n">ee_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'Central difference scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_rg</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">; error = </span><span class="si">{</span><span class="n">rg_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">; error ratio = </span><span class="si">{</span><span class="n">rg_last_error</span> <span class="o">/</span> <span class="n">rg_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14861,8 +14843,163 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="A-note-on-higher-order-equations">A note on higher-order equations<a class="anchor-link" href="#A-note-on-higher-order-equations">&#182;</a></h4><p>In this tuorial, we are only dealing with a model based on a single first-order differential equation. The timestepping methods here are ideal for this, and instead of extending them to higher-order equations, we will transform those into systems of first-order equations, which are going to be the topic of the next tutorial.</p>
-<p>If you want to practice these methods more, try to apply them on exercises 1 (i), the equations in part 3.1 of tutorial 3, as well as part 3.1 of the additionl exercises.</p>
+<p>If you look at the output of this code, you will notice that the errors decrease much faster for the Runge method, i.e. the method converges to the true value faster. By halving $\delta$, we can also cut the errors in half if we use the Eueler scheme, but we make it four times smaller using the Runge method. That is because the convergence is quadratic instead of linear. We perform twice as many computationally steps per time increment $\delta$ because we have to compute the midpoint, but because of the faster convergence, we still reach the same level of accuracy with lower computational cost. The error of the standard difference method at $\delta = 1/1024$ is approximately 0.001, which has been approximately reached at $\delta =1/64$ with the central differences method!</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="A-note-on-higher-order-equations">A note on higher-order equations<a class="anchor-link" href="#A-note-on-higher-order-equations">&#182;</a></h3><p>In this tutorial, we are only dealing with a model based on a single first-order differential equation. The timestepping methods here are ideal for this, and instead of extending them to higher-order equations, we will transform those into systems of first-order equations, which are going to be the topic of the next tutorial.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Simulating-time-series">Simulating time series<a class="anchor-link" href="#Simulating-time-series">&#182;</a></h3><p>In the last simulation exercise, we were only interested in calculating the value of the state variable $p$ after a number of time steps $T$. Often, we are however interested in the time series of the model, starting from a given initial value. To practice the two timestepping schemes a bit more, we will introduce a different first-order differential equation, simulate it over time, and finally plot the result.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Consider the equation $y' + 3y = 2$. Complete all the functions below: single incremental steps using the Euler and Runge methods, and a function that can apply either of these methods to simulate a time series (the output should be of type <code>list</code>) for a given number of time steps.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">ee_1step</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">runge_1step</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="n">y_mid</span> <span class="o">=</span> <span class="n">ee_1step</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+    <span class="c1"># TO DO</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">timestep_func</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Below, we simulate the model for 3 steps from initial value 5, using a relatively large increment $\delta=1/4$, and then we plot the results.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">y0</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="n">ee_res</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ee_1step</span><span class="p">)</span>
+<span class="n">rg_res</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">runge_1step</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"$y'(t) + 3y(t) = 2$, $y_0=5$"</span><span class="p">)</span>
+
+<span class="c1"># values for the x-axis</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># plot the exact solution too</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">x_exact</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> <span class="c1"># more points for smoother curve</span>
+<span class="n">y_exact</span> <span class="o">=</span> <span class="n">A</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span> <span class="o">*</span> <span class="n">x_exact</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ee_res</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Explicit Euler"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"darkblue"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">rg_res</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Runge"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"darkgreen"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_exact</span><span class="p">,</span> <span class="n">y_exact</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"analytical solution"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">'red'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'black'</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">'--'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Note how the distance from the green (upper) line to the exact solution (red line in the middle) is much smaller than the distance of the Euler method to the analytical solution. Moreover, you can clearly see another property of the Euler method: In the case of a convex function $\frac{\partial^2}{\partial t^2}&gt;0$ as the present one, the slope is exaggerated, i.e. in the case of a positive (negative) coefficient, we would obtain a positive (negative) bias. We only approximate the slope at the current point and and take a step $dt=\delta$ along this slope. However, the slope is changing (non-zero second derivative, i.e. the rate of change is changing), and therefore at any point between $t$ and $t+\delta$, the slope would already be different, which we ignore, leading to small approximation errors. The central difference methodobtains a more accurate representation of the true behaviour of the system, as it applies the slope in the middle, which is closer to the average slope over the entire distance.</p>
+<p>You can play around with the values of $n, \delta$ and see how they change the behaviour of the approximation. For values $n&gt;10$ it the difference between Runge's method and the exact solution quickly become invisible, while it takes a bit longer with the EUler method. You might also note a curious error source for $n\leq2$, which we will address in the next tutorial.</p>
 
 </div>
 </div>

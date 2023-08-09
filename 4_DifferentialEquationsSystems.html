@@ -14579,7 +14579,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="4-Systems-of-Differential-Equations">4 Systems of Differential Equations<a class="anchor-link" href="#4-Systems-of-Differential-Equations">&#182;</a></h1><p>In this tutorial, we apply the methods from the last tutorial to systems of first-order differential equations. We will also transform higher-order differential equations into systems of first-order equations, and analyse them as such.</p>
+<h1 id="4-Systems-of-Differential-Equations">4 Systems of Differential Equations<a class="anchor-link" href="#4-Systems-of-Differential-Equations">&#182;</a></h1><p>In this tutorial, two <em>implicit</em> timestepping methods are introduced, the implicit Euler and the Crank-Nicolson schemes. Once you are familiar with them, we will apply them to systems of first-order differential equations. We will also transform higher-order differential equations into systems of first-order equations, and analyse them as such.</p>
 
 </div>
 </div>
@@ -14613,6 +14613,219 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Implicit-Euler">Implicit Euler<a class="anchor-link" href="#Implicit-Euler">&#182;</a></h3><p>Consider the exponential function $y(t) = e^{-\lambda T}$, which satisfies $y'(t) = -\lambda y(t)$. Simulating it with the explicit Euler method would yield the following timestepping scheme:</p>
+<p>$y(t+\delta) \approx y(t) -\lambda y(t) = (1-\delta\lambda)y(t)$</p>
+<p>which creates ocillations if $\delta\lambda&gt;1$ (first-order difference equation with negative eigenvalue). This only happens due to the discretisation of an otherwise continuous system, and is hence undesirable. A solution is the implicit Euler method:</p>
+<p>$\frac{y(t+\delta) - y(t)}{\delta} \approx y'(t+\delta) = f(y(t+\delta),t+\delta)$</p>
+<p>$\Leftrightarrow y(t+\delta) \approx y(t) + \delta f(y(t+\delta), t+\delta)$</p>
+<p>I.e. we move along the tangent slope of the next point instead of the current. The actual timestepping scheme is given implicitly as the solution to a fixed-point problem. In the example of the exponential function above:</p>
+<p>$y(t+\delta) = y(t) -\lambda y(t) = (1-\delta\lambda)y(t+\delta)$</p>
+<p>$\Leftrightarrow y(t+\delta) = \frac{1}{1+\delta\lambda}y(t)$</p>
+<p><em>(Note the analogy of forward and backward solutions of exogenous sequences using lag polynomials).</em></p>
+<h3 id="Crank-Nicolson">Crank-Nicolson<a class="anchor-link" href="#Crank-Nicolson">&#182;</a></h3><p>As you noticed in the last tutorial, the explicit Euler method creates a bias if the second derivative is non-zero. The same is true for the implicit method, but the bias is in the opposite direction. A straightforward solution is to take the mean of both, so that the biases cancel each other out (completely, if no effects of orders higher than two are present):</p>
+<p>$y(t+\delta) \approx y(t) + \frac{\delta}{2}\left[f\left(y\left(t\right), t\right) + f\left(y\left(t+\delta\right), t+\delta\right)\right]$</p>
+<p>As the values at the next time step are on both sides, this is also an implicit scheme that requires finding the solution to a fixed-point equation.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Before moving on to systems of equations, complete the functions for a single step using the implicit Euler and Crank-Nicolson methods below. The model is the continuous-time cobweb model again: $p'=45 - 3p$.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h5 id="SOLUTION">SOLUTION<a class="anchor-link" href="#SOLUTION">&#182;</a></h5><p>The timestepping scheme according to the <strong>implicit Euler</strong> method is</p>
+<p>$p_{t+\delta} = p_t + \delta p'_{t+\delta} = p_t + \delta (45 - 3p_{t+\delta})$</p>
+<p>Which we need to solve for $p_{t+\delta}$:</p>
+<p>$p_{t+\delta} = \frac{1}{1+3\delta}(p_t + 45\delta)$</p>
+<p>For the <strong>Crank-Nicolson method</strong>, we have to solve $p_{t+\delta} = p_t + \frac{\delta}{2}(p'_t + p'_{t+\delta})$ for $p_{t+\delta}$. In the case of the Cobweb model:</p>
+<p>$p_{t+\delta} = (1 - \frac{3\delta}{2})p_t - \frac{3\delta}{2}p_{t+\delta} + 45\delta$</p>
+<p>$\Leftrightarrow (1+\frac{3\delta}{2})p_{t+\delta} = \frac{2+3\delta}{2}p_{t+\delta} = \frac{2-3\delta}{2}p_t + 45\delta$</p>
+<p>$\Leftrightarrow p_{t+\delta} = \frac{2-3\delta}{2+3\delta}p_t + \frac{90}{2+3\delta}\delta$</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">imp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">cn_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Solutions from last tutorial's methods for comparison</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">exp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">p</span> <span class="o">+</span> <span class="n">delta</span> <span class="o">*</span> <span class="p">(</span><span class="mi">45</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">p</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">runge_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="n">p_mid</span> <span class="o">=</span> <span class="n">exp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="c1"># derivative at midpoint</span>
+    <span class="n">dp</span> <span class="o">=</span> <span class="mi">45</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">p_mid</span>
+    <span class="c1"># return current price + delta times rate of change</span>
+    <span class="k">return</span> <span class="n">p</span> <span class="o">+</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">dp</span>
+
+<span class="c1"># analytical solution</span>
+<span class="k">def</span> <span class="nf">cobweb_1period</span><span class="p">(</span><span class="n">p_0</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">p_0</span> <span class="o">-</span> <span class="mi">15</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="mi">15</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Simulation until point T</span>
+<span class="k">def</span> <span class="nf">simulate_cobweb</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">timestep_func</span><span class="p">):</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">n</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">T</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">timestep_func</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">p0</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">p_analytical</span> <span class="o">=</span> <span class="n">cobweb_1period</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+
+<span class="c1"># errors</span>
+<span class="n">ee_error</span> <span class="o">=</span> <span class="n">ie_error</span> <span class="o">=</span> <span class="n">rg_error</span> <span class="o">=</span> <span class="n">cn_error</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># analyse convergence, doubling the number of steps per time unit</span>
+<span class="k">for</span> <span class="n">exponent</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">exponent</span>
+    <span class="c1"># update last period errors</span>
+    <span class="n">ee_last_error</span> <span class="o">=</span> <span class="n">ee_error</span>
+    <span class="n">ie_last_error</span> <span class="o">=</span> <span class="n">ie_error</span>
+    <span class="n">rg_last_error</span> <span class="o">=</span> <span class="n">rg_error</span>
+    <span class="n">cn_last_error</span> <span class="o">=</span> <span class="n">cn_error</span>
+    
+    <span class="c1"># starting prices</span>
+    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">p_ie</span> <span class="o">=</span> <span class="n">p_rg</span> <span class="o">=</span> <span class="n">p_cn</span> <span class="o">=</span> <span class="n">p0</span>
+    
+    <span class="c1"># calculate solutions</span>
+    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_ee</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">exp_euler_1step</span><span class="p">)</span>
+    <span class="n">p_ie</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_ie</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">imp_euler_1step</span><span class="p">)</span>
+    <span class="n">p_rg</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_rg</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">runge_1step</span><span class="p">)</span>
+    <span class="n">p_cn</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_cn</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">cn_1step</span><span class="p">)</span>
+    
+    <span class="c1"># new errors</span>
+    <span class="n">ee_error</span> <span class="o">=</span> <span class="n">p_ee</span> <span class="o">-</span> <span class="n">p_analytical</span>
+    <span class="n">ie_error</span> <span class="o">=</span> <span class="n">p_ie</span> <span class="o">-</span> <span class="n">p_analytical</span>
+    <span class="n">rg_error</span> <span class="o">=</span> <span class="n">p_rg</span> <span class="o">-</span> <span class="n">p_analytical</span>
+    <span class="n">cn_error</span> <span class="o">=</span> <span class="n">p_cn</span> <span class="o">-</span> <span class="n">p_analytical</span>
+    
+    <span class="c1"># convergence</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'delta = 1/</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">:'</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'Explicit Euler scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_ee</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error = </span><span class="si">{</span><span class="n">ee_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error ratio = </span><span class="si">{</span><span class="n">ee_last_error</span> <span class="o">/</span> <span class="n">ee_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'Implicit Euler scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_ie</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error = </span><span class="si">{</span><span class="n">ie_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error ratio = </span><span class="si">{</span><span class="n">ie_last_error</span> <span class="o">/</span> <span class="n">ie_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'Central difference scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_rg</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error = </span><span class="si">{</span><span class="n">rg_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error ratio = </span><span class="si">{</span><span class="n">rg_last_error</span> <span class="o">/</span> <span class="n">rg_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'Crank-Nicolson scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_cn</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error = </span><span class="si">{</span><span class="n">cn_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error ratio = </span><span class="si">{</span><span class="n">cn_last_error</span> <span class="o">/</span> <span class="n">cn_error</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>As you can see, the Crank-Nicolson methods also exhibits second-order convergence, i.e. the errors are 4 times larger if we double $\delta$. The implicit Euler method, following the same reasoning as its explicit counterpart, converges proportionally to $\delta$ (first-order convergence).</p>
+<p>For $n=2$, we would obtain the explicit Euler time-stepping scheme $p(t+\delta) = (1-3\delta)p(t) + 45\delta = -0.5p(t) + 22.5$, i.e. a first-order difference equation with a negative eigenvalue. The implicit method on the other hand yields $p_{t+\delta} = \frac{1}{1+3\delta}(p_t + 45\delta) = \frac{2}{5}(p_t + 45\delta)$, which is a difference equation with a positive eigenvalue and therefore does not lead to the undesired oscillations.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Systems-of-differential-equations">Systems of differential equations<a class="anchor-link" href="#Systems-of-differential-equations">&#182;</a></h3><p>Now that we know the main methods, we can apply them to systems of first-order difference equations. This step is analogous to the same extension of difference equations. We simply deal with equations in vectors and matrices instead of scalars, but everything else works in exactly the same way.</p>
 <h3 id="Two-goods-model">Two goods model<a class="anchor-link" href="#Two-goods-model">&#182;</a></h3><p>Consider the model in Tutorial 4, exercise 1:</p>
 <p>$\begin{align}p_1' &amp;= -2p_1 + 4p_2\\p_2' &amp;= -p_1 + p_2\end{align}$</p>
 <p>Or in vector notation:</p>
@@ -14627,7 +14840,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 \Leftrightarrow 
     \mathbf{p}' = \mathbf{Ap}
 $</p>
-<p>We are going to implement one step of the explicit and implicit Euler schemes, as well as the Crank-Nicolson scheme in the functions below. Recall their implementations:</p>
+<p>We are going to implement one step of the explicit and implicit Euler schemes, as well as Runge's method and the Crank-Nicolson scheme in the functions below. Recall their implementations:</p>
 <h4 id="Explicit-Euler">Explicit Euler<a class="anchor-link" href="#Explicit-Euler">&#182;</a></h4><p>(In vector notation:)</p>
 <p>$\mathbf{p}_{t+\delta} = \mathbf{p}_t + \delta\mathbf{p}'_{t}$</p>
 <p>Which can be implement using the definition of the vector of derivatives above:</p>
@@ -14639,6 +14852,11 @@ $</p>
     \mathbf{p}_{t+\delta} &amp;= (\mathbf{I} - \delta\mathbf{A})^{-1}\mathbf{p}_t
 \end{align}$</p>
 <p>Where $\mathbf{I}$ is the identity matrix.</p>
+<h4 id="Runge's-central-difference-quotient">Runge's central difference quotient<a class="anchor-link" href="#Runge's-central-difference-quotient">&#182;</a></h4><p>This one does not change much, it is essentially an extension of the explicit Euler scheme with an intermediate step:</p>
+<p>$\begin{align}
+    \mathbf{p}_{t+\delta} &amp;= \mathbf{p}_t + \delta \mathbf{Ap}_{t+\delta/2}\hspace{0.1cm}; \hspace{0.5cm}\text{with}\\
+    \mathbf{p}_{t+\delta/2} &amp;= \mathbf{p}_t + \frac{\delta}{2} \mathbf{Ap}_{t}
+\end{align}$</p>
 <h4 id="Crank-Nicolson">Crank-Nicolson<a class="anchor-link" href="#Crank-Nicolson">&#182;</a></h4><p>$\begin{align}
     \mathbf{p}_{t+\delta} &amp;= \mathbf{p}_t + \frac{\delta}{2}(\mathbf{p}'_{t+\delta} + \mathbf{p}'_{t}) = (\mathbf{I} + \frac{\delta}{2}\mathbf{A})\mathbf{p}_t + \frac{\delta}{2}\mathbf{A}\mathbf{p}_{t+\delta}\\
     \Leftrightarrow
@@ -14658,9 +14876,7 @@ $</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">ee_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14677,9 +14893,24 @@ $</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">ie_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
+    <span class="c1"># TO DO</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">rg_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14696,9 +14927,7 @@ $</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">cn_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14747,9 +14976,9 @@ $</p>
     <span class="n">results</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
     
     <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">U</span><span class="p">):</span>
-        <span class="c1">######</span>
-        <span class="c1"># TODO</span>
-        <span class="c1">######</span>
+        <span class="c1">#######</span>
+        <span class="c1"># TO DO</span>
+        <span class="c1">#######</span>
         
     <span class="k">return</span> <span class="n">results</span>
 </pre></div>
@@ -14785,8 +15014,9 @@ $</p>
 <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span> <span class="c1"># initial price vector</span>
 
 <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-    <span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
-     <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+    <span class="c1">#######</span>
+    <span class="c1"># TO DO</span>
+    <span class="c1">#######</span>
 <span class="p">)</span> <span class="c1"># coefficient matrix</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">simulate_2d_model</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">cn_2goods</span><span class="p">)</span>
@@ -14837,12 +15067,16 @@ $</p>
 
 <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_ts</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"darkblue"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"$p_1$"</span><span class="p">)</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_ts</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"darkred"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"$p_2$"</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"steady state"</span><span class="p">)</span>
 
 <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 
 <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"darkgreen"</span><span class="p">)</span>
 <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_iso</span><span class="p">,</span> <span class="n">p1_iso</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">'--'</span><span class="p">)</span>
 <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_iso</span><span class="p">,</span> <span class="n">p2_iso</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">'--'</span><span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14946,6 +15180,33 @@ $</p>
 </div>
 </div>
 </div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h5 id="Solution">Solution<a class="anchor-link" href="#Solution">&#182;</a></h5><p>We define $z = y'$, so that we can write the equation as the following system:</p>
+<p>$\begin{align}
+    y' &amp;= z\\
+    y'' = z' &amp;= -2y
+\end{align}$</p>
+<p>Or, in vector notation:</p>
+<p>$
+    \left(\begin{matrix}
+    y' \\ z'
+    \end{matrix}\right) = \left(\begin{matrix} 
+    0 &amp; 1 \\ -2 &amp; 0
+    \end{matrix}\right) \left(\begin{matrix}
+    y \\ z
+    \end{matrix}\right)
+$</p>
+<p>You can confirm that this system has purely imaginary eigenvalues $\lambda_{1,2} = \sqrt{2}i$. As the real part $Re(\lambda_{1,2})=0$, it is neither converging nor diverging, but remains on a stable cycle around the equilibrium, maintaining the same distance from it at all times.</p>
+
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -14955,9 +15216,9 @@ $</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-    <span class="c1">######</span>
-    <span class="c1"># TODO</span>
-    <span class="c1">######</span>
+    <span class="c1">#######</span>
+    <span class="c1"># TO DO</span>
+    <span class="c1">#######</span>
 <span class="p">)</span>
 
 <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
@@ -14968,6 +15229,7 @@ $</p>
 <span class="c1"># we can apply the 2-goods model function, as the steps are exactly the same!</span>
 <span class="n">results_ee</span> <span class="o">=</span> <span class="n">simulate_2d_model</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">ee_2goods</span><span class="p">)</span>
 <span class="n">results_ie</span> <span class="o">=</span> <span class="n">simulate_2d_model</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">ie_2goods</span><span class="p">)</span>
+<span class="n">results_rg</span> <span class="o">=</span> <span class="n">simulate_2d_model</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">rg_2goods</span><span class="p">)</span>
 <span class="n">results_cn</span> <span class="o">=</span> <span class="n">simulate_2d_model</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">cn_2goods</span><span class="p">)</span>
 </pre></div>
 
@@ -14983,7 +15245,7 @@ $</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="Accuracy-comparison">Accuracy comparison<a class="anchor-link" href="#Accuracy-comparison">&#182;</a></h4><p>See the phase diagram below for the motivation to prefer the Crank-Nicolson method over either of the two Euler schemes. We could show analytically that the system should stay in a stable limit cycle, orbiting the equilibrium. As the Euler schemes are first-order Taylor approximations of the "true" behaviour of the system, they create small errors, when second-order effects are present. Namely, in the case of a convex function ($\frac{\partial^2f}{\partial x^2}&gt;0$), the explicit Euler scheme will create a positive bias, and the implicit Euler scheme a negative one. This can easily be proven with Jensen's inequality. The opposite holds for concave functions. Taking the mean of both will hence always provide much more accurate solutions! (Note: in physical applications, this is often related to the conservation of quantities such as energy.)</p>
+<h4 id="Accuracy-comparison">Accuracy comparison<a class="anchor-link" href="#Accuracy-comparison">&#182;</a></h4><p>See the phase diagram below for the motivation to prefer the Crank-Nicolson method over either of the two Euler schemes. We could show analytically that the system should stay in a stable limit cycle, orbiting the equilibrium. As the Euler schemes are first-order Taylor approximations of the "true" behaviour of the system, they create small errors, when second-order effects are present. Namely, in the case of a convex function ($\frac{\partial^2f}{\partial x^2}&gt;0$), the explicit Euler scheme will create a positive bias, and the implicit Euler scheme a negative one. This can easily be proven with Jensen's inequality. The opposite holds for concave functions. The circle being convex, we can verify that the explicit Euler scheme diverges outward, while the implicit one turns inwards. Taking the mean of both will hence always provide much more accurate solutions! (Note: in physical applications, this is often related to the conservation of quantities such as energy.) The Runge method would in this case yield practically the same result as the Crank-Nicolson method, so plotting only of the two makes more sense here.</p>
 
 </div>
 </div>
@@ -15001,7 +15263,7 @@ $</p>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results_ee</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">results_ee</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Explicit Euler"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results_ie</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">results_ie</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Implicit Euler"</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results_cn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">results_cn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Crank-Nicolson"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results_cn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">results_cn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Crank-Nicolson"</span><span class="p">)</span>
 
 <span class="c1"># indicate direction using arrows on the last step</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span>

@@ -14930,7 +14930,7 @@ $</p>
     \Leftrightarrow
     \mathbf{p}_{t+\delta} &amp;= (\mathbf{I}-\frac{\delta}{2}\mathbf{A})^{-1}(\mathbf{I}+\frac{\delta}{2}\mathbf{A})\mathbf{p}_t
 \end{align}$</p>
-<h5 id="Exercise">Exercise<a class="anchor-link" href="#Exercise">&#182;</a></h5><p>Implement each of these methods in the respective functions below. They should take as inputs the current price vector $p$, the coefficient matrix $A$, and the size of the step $\delta$. Invert matrices <code>M</code> with the <code>inv</code> function from numpy's subpackage linalg: <code>np.linalg.inv(M)</code>.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement each of these methods in the respective functions below. They should take as inputs the current price vector $p$, the coefficient matrix $A$, and the size of the step $\delta$. Invert matrices <code>M</code> with the <code>inv</code> function from numpy's subpackage linalg: <code>np.linalg.inv(M)</code>.</p>
 
 </div>
 </div>
@@ -15024,7 +15024,7 @@ $</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="Exercise">Exercise<a class="anchor-link" href="#Exercise">&#182;</a></h5><p>Implement the loop in the function below. The function simulates the behaviour of the model over time for 1 unit time step, which is divided into $1/\delta$ incremental time steps. The particular timestepping method is passed as an input as well, so later on we can exchange the methods flexibly and compare behaviour.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement the loop in the function below. The function simulates the behaviour of the model over time for 1 unit time step, which is divided into $1/\delta$ incremental time steps. The particular timestepping method is passed as an input as well, so later on we can exchange the methods flexibly and compare behaviour.</p>
 
 </div>
 </div>
@@ -15180,9 +15180,9 @@ $</p>
 
 
 
-<div id="b216b926-673d-4789-87d5-e67075d09df8" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="44cc24c1-9602-4a7a-a698-7ebbc0fbaf9b" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('b216b926-673d-4789-87d5-e67075d09df8');
+var element = document.getElementById('44cc24c1-9602-4a7a-a698-7ebbc0fbaf9b');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -16263,9 +16263,9 @@ if (IPython.notebook.kernel !== null) {
 
 
 
-<div id="f6f134fe-3719-4fbf-a0de-bb317189295e" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="873c2c5d-87c8-461a-b709-4151cf592a9b" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('f6f134fe-3719-4fbf-a0de-bb317189295e');
+var element = document.getElementById('873c2c5d-87c8-461a-b709-4151cf592a9b');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -17253,7 +17253,7 @@ if (IPython.notebook.kernel !== null) {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="Exercise">Exercise<a class="anchor-link" href="#Exercise">&#182;</a></h5><p>Now consider the second-order differential equation $y'' + 2y = 0$. Instead of extending the methods we have learned to higher-order systems, re-state this equation as a 2-dimensional system of first-order differential equations and simulate it. You only have to define the coefficient matrix $A$, then we can re-use the single-step functions above. Finally, we will compare the three methods with this particular equation.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Now consider the second-order differential equation $y'' + 2y = 0$. Instead of extending the methods we have learned to higher-order systems, re-state this equation as a 2-dimensional system of first-order differential equations and simulate it. You only have to define the coefficient matrix $A$, then we can re-use the single-step functions above. Finally, we will compare the three methods with this particular equation.</p>
 
 </div>
 </div>
@@ -17265,7 +17265,7 @@ if (IPython.notebook.kernel !== null) {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="Solution">Solution<a class="anchor-link" href="#Solution">&#182;</a></h5><p>We define $z = y'$, so that we can write the equation as the following system:</p>
+<h5 id="SOLUTION">SOLUTION<a class="anchor-link" href="#SOLUTION">&#182;</a></h5><p>We define $z = y'$, so that we can write the equation as the following system:</p>
 <p>$\begin{align}
     y' &amp;= z\\
     y'' = z' &amp;= -2y
@@ -17395,9 +17395,9 @@ $</p>
 
 
 
-<div id="ba142c65-f63a-41d8-abd6-185a7cb0df08" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="20a73186-af9a-4cd9-b02e-be89d78ec130" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('ba142c65-f63a-41d8-abd6-185a7cb0df08');
+var element = document.getElementById('20a73186-af9a-4cd9-b02e-be89d78ec130');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -18383,7 +18383,7 @@ if (IPython.notebook.kernel !== null) {
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.legend.Legend at 0x1d1ae89c910&gt;</pre>
+<pre>&lt;matplotlib.legend.Legend at 0x1ace3f3ae20&gt;</pre>
 </div>
 
 </div>

@@ -14725,8 +14725,9 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="Simulation">Simulation<a class="anchor-link" href="#Simulation">&#182;</a></h3><p>Ultimately, we are not interested in tiny steps of a model, but longer time series and the convergence to equilibrium, or divergence to $\pm\infty$. Hence, in the next step, your task will be to implement many of those single steps in a row. Both functions for single steps are using the same structure of inputs <code>p</code> and <code>delta</code>, and an output of the price after one incremental time step, so we can write a function that can flexibly apply either timestepping method.</p>
 <h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Complete the function below to simulate the cobweb model. They both take an initial value <code>p</code>, the number of unit steps <code>T</code>, and the number of increments per unit step, <code>n</code>. Hint: $n=1/\delta$. They should not return a whole timeseries of values, but only the final value at time $T$. The final input is a function object, <code>timestep_func</code>. In Python (as in many other programming languages), you can pass a function as an input to another functiuon. We do not evaluate it (no parentheses, but we apply it later in the code block of the function we are writing in the following way:</p>
-<p><code>def my_func(other_func, a):</code></p>
-<p><code>other_func(a)</code></p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">my_func</span><span class="p">(</span><span class="n">other_func</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+    <span class="n">other_func</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
 <p>In the same way, you can run the timestep_func with inputs <code>p</code> and <code>delta</code> inside the function that simulates a series of steps, <code>simulate_cobweb</code>.</p>
 
 </div>
@@ -15104,9 +15105,9 @@ Central difference scheme
 
 
 
-<div id="ae6c45bf-7f3c-466d-a9b9-342650f32dbf" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="2f3f1d86-e2e1-4e44-8906-19c050561522" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('ae6c45bf-7f3c-466d-a9b9-342650f32dbf');
+var element = document.getElementById('2f3f1d86-e2e1-4e44-8906-19c050561522');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -16092,7 +16093,7 @@ if (IPython.notebook.kernel !== null) {
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.legend.Legend at 0x22437be3700&gt;</pre>
+<pre>&lt;matplotlib.legend.Legend at 0x236eae57730&gt;</pre>
 </div>
 
 </div>

@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>5_NonlinearDynamics</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>6_DynamicOptimisation</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14579,9 +14579,11 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="5-Nonlinear-Dynamics">5 Nonlinear Dynamics<a class="anchor-link" href="#5-Nonlinear-Dynamics">&#182;</a></h1><p>So far we have only simulated linear models, which are of course only a small subset of all possible dynamic models. As you have seen in the lectures and tutorials, solving models can become much more complicated when non-linearities are involved, and is often restricted to local analyses of linearised systems around fixed points. Simulating non-linear models however is is not so different to simulating linear models. The only complication is that the fixed point problem that arises in implicit timestepping methods may not always be straightforward to solve.</p>
-<p>In this tutorial you will learn how to circumvent the problem of unsolvable fixed points and we apply it to the Crank-Nicolson method. In the following, we will introduce the Runge-Kutta timestepping scheme, which is a popular method used in many software applications due its excellent convergence properties.</p>
-<p>Moreover, we will touch upon numerical methods to find fixed points of generic dynamic models using Newton's method.</p>
+<h1 id="6-Dynamic-Optimisation">6 Dynamic Optimisation<a class="anchor-link" href="#6-Dynamic-Optimisation">&#182;</a></h1><p>In the lecture we have learned analytic methods to solve optimal control problems, i.e. we solved them using purely mathematical techniques, with pen and paper. Many problems may however not be analytically solvable, if the problems become more complex. In that case, we resort to numerical optimisation methods. The advantage of using a computer is that we can run thousands of calculations in a very short time, so it allows us to try out a certain time path for our control and state variables, and then iterate towards some optimal solution. The key challenge is to design methods that converge relatively fast, i.e. with relatively few steps of calculation. Much of the explanation in this tutorial, as well as the practice problem is based on Sharp et al. (2021), which is a good overview of the basic method, as well as a few extensions to it.</p>
+<p>In this tutorial, you will learn to implement one such algorithm, the forward-backward-sweep method. There are many possible variations and extensions of it, but if you understand the principles of the core framework, it should be relatively easy for you to learn how to implement those by yourselves. The algorithm essentially starts with a "guess" about the optimal solution for the control variable, and based on this guess then iterates the state variable forward in time, starting from the initial condition $x(0)=x_0$. This is a straightforward application of any timestepping scheme from the previous tutorials (in practice typically the fourth-order Runge-Kutta) on the state equation. In case there is no terminal condition (and if it is relatively clear that $x(T) \neq 0$), we can then iterate the co-state variable, the shadow price, <em>backwards</em> from $\mu(T)=0$. Similarly, if a final function $F(x(T), T)$ is given, we know that $\mu(T) = \frac{\partial F}{\partial x}_{t=T}$, so we iterate backwards from that value. This provides initial guesses for the state and co-state variables, which might be far from the optimal solution still. However, we can, based on these guesses and the first-order conditions, optimise the control variable and improve upon this first guess of the control variable. With this improved guess we can now start from the beginning and run these three steps (forward iteration of state variable, backward iteration of co-state, optimisation of control) over and over again until the algorithm converges. If a desired terminal state $x(T)=x_T$ is given, or if it is not quite clear whether $\mu(T)=0$ or $x(T)=0$ (recall the condition $x(T)\mu(T)=0$ in absence of a terminal condition), other methods need to be added. This tutorial is only meant to be a brief and gentle introduction to the topic however, so we will focus on the most basic version, where $\mu(T)=0$.</p>
+<p>While quite a few steps are involved in solving this problem, it is mainly a combination of techniques we already know from the previous tutorials. We will take it step by step to keep it as simple as possible.</p>
+<p>Rather than viewing the one algorithm here as a go-to solution for any optimisation problem you may come across in the future (other classes, thesis, work...), this should serve as an introduction to the general idea of iteratively searching for an optimal solution to a given problem, be it optimisation, estimation, or anything else. After all, the general idea of starting from a (random) initial guess and to somehow converge to an optimum applies not only to our abstract academic problems in class, but also forms the core of many machine learning algorithms.</p>
+<h6 id="REFERENCE:">REFERENCE:<a class="anchor-link" href="#REFERENCE:">&#182;</a></h6><p>Sharp JA, Burrage K, Simpson MJ, 2021. Implementation and acceleration of optimal control for systems biology.<em>J. R. Soc. Interace</em> <strong>18</strong>: 20210241. <a href="https://doi.org/10.10998/rsif.2021.0241">https://doi.org/10.10998/rsif.2021.0241</a>.</p>
 
 </div>
 </div>
@@ -14598,10 +14600,10 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colormaps</span>
 
+<span class="c1"># this renders text in figures in Latex font</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">rc</span>
-<span class="n">rc</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Latex font in figures</span>
+<span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14616,46 +14618,54 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Solow-model-with-constant-technology-and-population">Solow model with constant technology and population<a class="anchor-link" href="#Solow-model-with-constant-technology-and-population">&#182;</a></h3><p>Consider Solow's growth model, defined by the following equations:</p>
+<h3 id="Free-terminal-state">Free terminal state<a class="anchor-link" href="#Free-terminal-state">&#182;</a></h3><p>Consider the optimisation problem</p>
 <p>$\begin{align}
-    Y &amp;= AK^{\alpha}L^{(1-\alpha)} \hspace{0.1cm};\hspace{0.5cm}0&lt;\alpha&lt;1\\
-    Y &amp;= C + I \\
-    S &amp;= sY = I\\
-    K' &amp;= I - \gamma K = sY
+    \text{max } J &amp;= \int_{t_0}^{T} I\left(x, u, t\right) + \phi\left(x_T, T\right) \\
+    x' &amp;= f\left(x, u, t\right) \\
+    x_0 &amp;= 0
 \end{align}$</p>
-<p>The first equation is a standard Cobb-Douglas production function with technology parameter $A$, capital input $K$, and labour input $L$, which defines the total output $Y$. The second equation states that all production is either consumed or invested, and the third equation is the savings-investment identity $S=I$. Note that a fixed share of total income $s$ is saved in every period. Finally, the law of motion states that the rate of change of capital equals investments (positive inflow to capital) minus depreciation (outflow from capital, through wear-and-tear or similar), which is a linear function of capital with the depreciation rate $\gamma$.</p>
-<p>In per-capita terms and with a technology parameter $A=1$, the last equation can be restated as</p>
+<p>Where $x$ is the state variable, $u$ the control, $I(\cdot)$ is the influence function, $\phi(\cdot)$ is the final function (not always given), and $f(\cdot)$ is the law of motion, i.e. the state equation. The Hamiltonian is</p>
 <p>$\begin{equation}
-    k' = sk^{\alpha} - \gamma k
+    H = I\left(x, u, t\right) + \mu\left(f\left(x, u, t\right)\right)
 \end{equation}$</p>
-<p>Solving the fixed-point problem of the implicit Crank-Nicolson method to iterate this equation forward in time would be cumbersome at best. Instead, we will approximate $k_{t+\delta}$ with an explicit Euler step, and calculate the rate of change at this point, so we can use it in our Crank-Nicolson scheme. This is not as accurate as the analytical solution, but still improves a lot on the explicit Euler scheme applied by itself. Note also the similiarity to Runge's method, where we take half an Euler step, and calculate the derivative at the point $t+\delta/2$.</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement a single step of the Crank-Nicolson and Runge methods in the functions below. For the Crank-Nicolson method, estimate $k_{t+\delta}$ with an explicit Euler step and then calculate the derivates at $k_t$ and $k_{t+\delta}$ to perform the step forward.</p>
-<p>Write a separate function for the Euler step, which you can use in the other functions. That way, we can compare behaviour of the methods afterwards, and your code becomes more readable. Generally, it is a good idea to split functions into subroutines, so that each function has narrow and focused responsibilities.</p>
-
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="SOLUTION">SOLUTION<a class="anchor-link" href="#SOLUTION">&#182;</a></h5><p>Recall the <strong>Crank-Nicolson</strong> method: $k_{t+\delta} \approx k_t + \frac{\delta}{2}(k'_t + k'_{t+\delta})$. Inserting the derivatives would yield the equation</p>
+<p>and we know the first-order conditions (FOCs):</p>
+<p>$\begin{align}
+    \frac{\partial H}{\partial u} &amp;\overset{!}{=} 0 \hspace{0.5cm}(i)\\
+    \frac{\partial H}{\partial x} &amp;\overset{!}{=} -\mu' \hspace{0.5cm}(ii)\\
+    \frac{\partial H}{\partial \mu} &amp;\overset{!}{=} x' \hspace{0.5cm}(iii)\\
+    \frac{\partial \phi}{\partial x(T)} &amp;\overset{!}{=} \mu(T)  \hspace{0.5cm}(iv)
+\end{align}$</p>
+<p>If no final function is given, the last condition becomes</p>
 <p>$\begin{equation}
-    (1+\delta\gamma)k_{t+\delta} - \delta sk_{t+\delta}^{\alpha} = (1- \delta\gamma)k_t
+    \mu(T)x(T) = 0 \Leftrightarrow \mu(T)=0\lor x(T)=0
 \end{equation}$</p>
-<p>which we do not want to solve by hand. Instead, we estimate $k'_{t+\delta}$ with an explicit Euler step and approximate the derivative at this point:</p>
-<p>$\begin{align}
-    \tilde{k}_{t+\delta} &amp;\approx k_t + \delta(sk^{\alpha} - \gamma k)\\
-    \tilde{k'}_{t+\delta} &amp;\approx s\tilde{k}_{t+\delta}^{\alpha} - \gamma\tilde{k}_{t+\delta}
-\end{align}$</p>
-<p>Finally, we use the derivatives at both points to implement the time step:</p>
+<p>To solve this numerically, we first have to discretise the continuous-time system, creating $N+1$ points in time, with $dt=\frac{T-t_0}{N}$. Now we start with an initial guess for the time path of the control variable $u^{(0)}$ (superscript denotes iteration number of our algorithm) and use this guess to solve the dynamics of the state variable $x$ <em>forward</em> in time, starting from the initial condition. We can use any of the methods from the last three tutorials, but the Runge-Kutta timestepping methods is really the standard here. Having solved the time path of the state variable, and given our initial guess of the control variable, we can now use the $(ii)$, with a starting value from $(iv)$ to solve the time path of $\mu$ <em>backwards</em>.</p>
+<p>At this point we have the initial guesses for the time paths of all three variables of interest. However, there is no reason to assume that this initial guess is actually optimal. Hence, we can use FOC $(i)$ to satisfy the optimality condition of our control variable $u$. This can be done with a simple Newton-type method of finding the roots of an equation. As we are finding the roots of the derivative, it means we will ultimately find a (local) optimum. In practice, it means that we iterate through the values of $u(t), t\in[0, dt, ..., T]$, solve for the roots of the FOC at that point in time, and update our guess to $u^{(1)}$. Often, we do not step fully towards the optimum, but only some part of the way, i.e. we set $u^{(k+1)} \leftarrow (1-\omega) u^{(k)} + \omega \hat{u}^{(k+1)}$. This avoids potential instability in the convergence behaviour through overshooting.</p>
+<p>We can then start over with this updated guess $u^{(1)}$ for the control variable to re-estimate the time paths for $x$ and $\mu$ and proceed through the same steps over and over again. We stop when some convergence criterion has been reached, or when we meet a maximum number of iterations, which we typically set in case we cannot reach convergence (we do not want the computer to run forever).</p>
+<p>As you can see, there are quite a few steps involved, but we will break up the problem into smaller components and go through it step by step. Many of the methods we use are already known to you by now, so I hope the combination of several of these does not appear too daunting at this point. First, we set up a Hamiltonian, then write functions to differentiate numerically, create the timestepping functions for $x$ and $\mu$ using the fourth-order Runge-Kutta iterator, and then we implement the Newton algorithm to optimise the control variable. Finally, we put it all together to solve the problem that is given below.</p>
+<p>Everything will be implemented quite generally, so that the program should be able to solve any other optimisation problem where $\mu(T)=0$. You only have to adjust the Hamiltonian and the state equation.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Optimisation-problem">Optimisation problem<a class="anchor-link" href="#Optimisation-problem">&#182;</a></h3><p>As am example we use the farming problem from Sharp et al. (2021). There is a single crop on a field, of which we denote the amount at time $t$ by $x(t)$. The control, e.g. fertilizer to spur growth, is denoted by $u(t)$. We start with an initial amount (small plants a the beginning of the season) $x(0) = x_0$ and have an indeterminate (free) final state $x(T)$ at the end of the growing season. Hence, we want to grow as much as is economically optimal. The condition $x(T)\mu(T)=0$ then logically implies that $\mu(T)=0$, as it cannot be optimal to not have anything to harvest ($x(T)=0$).</p>
+<p>Plants grow better with more fertilizer, leading to the state equation</p>
 <p>$\begin{equation}
-    k_{t+\delta} \approx k_t + \frac{\delta}{2}(k'_t + \tilde{k'}_{t+\delta})
+    \frac{dx}{dt} = \gamma x(t) + u(t) 
 \end{equation}$</p>
-<p>For <strong>Runge's method</strong> using the central difference quotient, nothing changes compared to linear models: we take half an Euler step, calculate the derivative at this point and use that rate of change to calculate $k(t+\delta)$.</p>
+<p>with $x(0)=x_0$. We maximise profit: revenue from harvest sales minus costs of fertilizer. As the growth depends on current size of plants and the amount of fertilizer now, this is a dynamic problem with the objective function</p>
+<p>$\begin{equation}
+    \text{max } J = \int_0^1 \left(ax^2 - bu^2\right) dt
+\end{equation}$</p>
+<p>We set the length of one season to 1, so that the integral is from $t=0$ to $t=1$. Both revenue and costs are quadratic. The analytical solution is quite cumbersome (provided in the online appendix by Sharp et al. (2021)), so it is better to solve it numerically. Let us take it step by step.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>In the first step, set up the Hamiltonian function and implement it below. Implement the state equation $\frac{\partial x}{\partial t} = f(x, u, t)$ as well! Use the parameter values $a=b=1$ and $\gamma = 0.5$.</p>
 
 </div>
 </div>
@@ -14668,169 +14678,10 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># euler step</span>
-<span class="k">def</span> <span class="nf">ee_solow_step</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Hamiltonian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
     <span class="c1"># TO DO</span>
 
-<span class="c1"># crank-nicolson</span>
-<span class="k">def</span> <span class="nf">cn_solow_step</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1"># TO DO</span>
-
-<span class="k">def</span> <span class="nf">runge_solow_step</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1"># TO DO</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement the function that simulates Solow's model with either of the two timestepping functions!</p>
-<p>Inputs are the standard model parameters, the time increment $\delta$, as well as the total number of <em>unit</em> time steps <code>T</code> and the timestepping function. Output should be a numpy array of capital values $k$.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">simulate_Solow</span><span class="p">(</span><span class="n">k_0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">timestep_func</span><span class="p">):</span>
-    <span class="c1"># total number of time increments: inverse of increment times unit steps</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span>
-    
-    <span class="c1"># time series of capital, as an array</span>
-    <span class="n">k_ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">T</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">k_ts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_0</span>
-    
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
-        <span class="c1"># TO DO</span>
-        
-    <span class="k">return</span> <span class="n">k_ts</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># set variable values</span>
-<span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span>  <span class="c1"># time increment</span>
-<span class="n">T</span> <span class="o">=</span> <span class="mi">75</span>        <span class="c1"># time unit steps</span>
-<span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span>   <span class="c1"># Cobb-Douglas exponent</span>
-<span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.1</span>   <span class="c1"># depreciation rate of capital</span>
-<span class="n">s</span> <span class="o">=</span> <span class="mf">0.1</span>       <span class="c1"># savings rate</span>
-<span class="n">k_0</span> <span class="o">=</span> <span class="mf">0.1</span>     <span class="c1"># initial capital</span>
-
-<span class="n">Solow_T_CN</span> <span class="o">=</span> <span class="n">simulate_Solow</span><span class="p">(</span><span class="n">k_0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">cn_solow_step</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Solow growth model implementation&#39;</span><span class="p">)</span>
-
-<span class="c1"># x-axis re-adjusted</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-<span class="c1"># plot the time series</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">Solow_T_CN</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-
-<span class="c1"># analytical solution of the steady state:</span>
-<span class="n">ss</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">gamma</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">alpha</span><span class="p">))</span>
-<span class="c1"># horizontal line at steady state</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-
-<span class="c1"># axis labels</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;t&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Higher-order-methods">Higher-order methods<a class="anchor-link" href="#Higher-order-methods">&#182;</a></h3><p>So far we have used four different timestepping methods of differential equations of the general form $y'(t) = f(y(t), t)$:</p>
-<p>$\begin{align}
-    y(t+\delta)\ &amp;\approx y(t) + \delta f(y(t), t) \tag{Explicit Euler} \\
-    y(t+\delta)\ &amp;\approx y(t) + \delta f(y(t+\delta), t+\delta) \tag{Implicit Euler} \\
-    y(t+\delta)\ &amp;\approx y(t) + \delta f(y(t) + \delta/2(f(y(t), t), t + \delta/2) \tag{Runge} \\
-    y(t+\delta)\ &amp;\approx y(t) + \delta/2[f(y(t), t) + f(y(t+\delta), t+\delta)]  \tag{Crank-Nicolson}  
-\end{align}$</p>
-<p>We noticed that the methods of Runge and Crank-Nicolson worked much better, as they did not simply extrapolate using the derivative at one of the endpoints. As you may have guessed, using methods with even more intermediate steps can indeed improve convergence further.</p>
-<h4 id="Runge-Kutta">Runge-Kutta<a class="anchor-link" href="#Runge-Kutta">&#182;</a></h4><p>A standard method is the "classic Runge-Kutta" method. It uses a weighted average of four different derivatives:</p>
-<p>$y(t+\delta) = y(t) + \frac{\delta}{6}(k_1 + 2k_2 + 2k_3 + k_4)$</p>
-<p>with</p>
-<p>$\begin{align}
-    k_1 &amp;= f(y(t), t+\delta) \\
-    k_2 &amp;= f(y(t) + \delta\frac{k_1}{2}, t+\frac{\delta}{2}) \\
-    k_3 &amp;= f(y(t) + \delta\frac{k_2}{2}, t+\frac{\delta}{2}) \\
-    k_4 &amp;= f(y(t) + \delta k_3, t+\delta)
-\end{align}$</p>
-<p>That is, $k_1$ is the slope at the beginning of the interval (Euler step), $k_2$ is the slope at the midpoint of the interval. This midpoint is calculated using $k_1$, i.e. the slope at the beginning of the interval (we would apply this slope in the Runge's central difference method). $k_3$ is also the slope at the midpoint, but now we calculate it using $k_2$, i.e. the estimate of the midpoint slope using the slope we had previously calculated using the slope at the beginning of the interval. $k_4$ is the slope at the endpoint of the interval, calculated using $k_3$. So ultimately, we extrapolate from the rate of change in the beginning ($k_1$) to calculate the midpoint, we use that estimate to calculate the slope at this midpoint ($k_2$), and then re-estimate the slope at the midpoint ($k_3$) with this initial estimate of the slope at this point. Finally, we use the improved midpoint slope estimate to estimate the endpoint and calculate the slope at that value of $y$ ($k_4$). We do not discard any of the slope estimates, as we would in case of the Runge method, where we only use the slope we calculated in the second step, but instead we take a weighted average of all the slopes.</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>In order to compare convergence to the true value, we will once more revisit the cobweb model $p' = 45 - 3p$. Implement one step of the classig Runge-Kutta method for this model.</p>
-
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="SOLUTION">SOLUTION<a class="anchor-link" href="#SOLUTION">&#182;</a></h5><p>We calculate the slopes sequentially, as we need the value of the last one to obtain the next. I.e. we calculate the rate of change of the price at its current value, $p'$ using the given equation: $k_1 = 45 - 3p$. Then, we implement the equation at the next point, which we calculate with this slope: $k_2 = 45 - 3(p+0.5\delta k_1)$ etc.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">rk_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">dxdt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
     <span class="c1"># TO DO</span>
 </pre></div>
 
@@ -14846,7 +14697,15 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>A few of the previous methods, for comparison</p>
+<h3 id="Numerical-differencing">Numerical differencing<a class="anchor-link" href="#Numerical-differencing">&#182;</a></h3><p>It was introduced as a bonus exercise in the previous tutorial, but now you cannot avoid it anymore. Recall the principles that were discussed:</p>
+<p>Sometimes the derivative of a function may not be easy to calculate, or you don't know the exact function of the dynamic model you are analysing. That can be particularly relevant when you are working with empirical data for which you do not know the exact data-generating function. In that case, numerical differencing comes in handy. Consider the definition of derivatives:</p>
+<p>$f'(x) = \underset{h\rightarrow0}{lim}\frac{f(x+\epsilon) - f(x)}{\epsilon}$.</p>
+<p>We cannot actually implement infinitesimally small steps, but we can approximate derivatives with finite differences, using finitely small values of $h$:</p>
+<p>$f'(x)\approx\frac{f(x+\epsilon) - f(x)}{\epsilon}; \hspace{0.5cm}h&gt;0$.</p>
+<p>We can use forward or backwards differencing ($+h$ or $-h$), but a good option is usually central differences:</p>
+<p>$f'(x)\approx\frac{f(x+\frac{\epsilon}{2}) - f(x-\frac{\epsilon}{2})}{\epsilon}$.</p>
+<p>Since we have to evaluate the function at two points anyway, this does not come at a significantly higher computational cost either.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Complete the two functions $\frac{\partial H}{\partial u}$ and $\frac{\partial H}{\partial x}$ using numerical differencing (central difference quotient) below. <code>H</code> is the Hamiltonian function, which we defined above (and which can be exchanged flexibly if the problem changes), <code>x</code>, <code>u</code>, $\mu$, <code>t</code> are following the standard notation of the course. They represent the point at which the function is to be evaluated. Finally, <code>eps</code> is the parameter that defines the size of the difference we will evaluate, $\epsilon$ in the description above. We do not need to differentiate with respect to $\mu$, since it only leads to the state equation, which we know already.</p>
 
 </div>
 </div>
@@ -14859,14 +14718,11 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># one explicit method</span>
-<span class="k">def</span> <span class="nf">exp_euler_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">p</span> <span class="o">+</span> <span class="n">delta</span> <span class="o">*</span> <span class="p">(</span><span class="mi">45</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">p</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">dHdu</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">eps</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
 
-<span class="c1"># one implicit method</span>
-<span class="k">def</span> <span class="nf">cn_1step</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="n">denominator</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">delta</span>
-    <span class="k">return</span> <span class="p">((</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span> <span class="o">/</span> <span class="n">denominator</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="mi">90</span> <span class="o">/</span> <span class="n">denominator</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span>
+<span class="k">def</span> <span class="nf">dHdx</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">eps</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14881,7 +14737,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>analytical solution</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Next, complete the two functions below. They perform a single Runge-Kutta step in the variables $x$ and $\mu$. Note that the step in $\mu$ is <em>backwards</em> in time. The time derivative of $\mu$ is given by the second FOC of the Hamiltonian.</p>
 
 </div>
 </div>
@@ -14894,8 +14750,11 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">cobweb_1period</span><span class="p">(</span><span class="n">p_0</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">p_0</span> <span class="o">-</span> <span class="mi">15</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="mi">15</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">xRK_1step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
+
+<span class="k">def</span> <span class="nf">muRK_1step</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">eps</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14910,7 +14769,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Simulation over $T$ steps</p>
+<p>The next set of functions we need is the implementation of the Newton method to optimise our control, given our time paths of $x$ and $\mu$ (which were calculated with the last guess of the control variable). We will use Newton's algorithm again, applying it independently to the values of our control variable at every point in time. Note that we look for the roots of the derivative of the Hamiltonian with respect to the control variable, so we will also need the next higher (second-order) derivative.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Calculate the second derivative of the Hamiltonian with respect to $u$ ($\frac{\partial^2 H}{\partial u^2}$), using numerical differencing.</p>
 
 </div>
 </div>
@@ -14923,11 +14783,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">simulate_cobweb</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">timestep_func</span><span class="p">):</span>
-    <span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">n</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">T</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">timestep_func</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">p</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">d2Hdu2</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">eps</span><span class="p">):</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14942,110 +14799,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Evaluation of convergence</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">p0</span> <span class="o">=</span> <span class="mi">60</span>
-<span class="n">T</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">p_analytical</span> <span class="o">=</span> <span class="n">cobweb_1period</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-
-<span class="c1"># errors</span>
-<span class="n">ee_error</span> <span class="o">=</span> <span class="n">cn_error</span> <span class="o">=</span> <span class="n">rk_error</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="c1"># analyse convergence, doubling the number of steps per time unit</span>
-<span class="k">for</span> <span class="n">exponent</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">9</span><span class="p">):</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">exponent</span>
-    <span class="c1"># update last period errors</span>
-    <span class="n">ee_last_error</span> <span class="o">=</span> <span class="n">ee_error</span>
-    <span class="n">cn_last_error</span> <span class="o">=</span> <span class="n">cn_error</span>
-    <span class="n">rk_last_error</span> <span class="o">=</span> <span class="n">rk_error</span>
-    
-    <span class="c1"># starting prices</span>
-    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">p_ie</span> <span class="o">=</span> <span class="n">p_rg</span> <span class="o">=</span> <span class="n">p_cn</span> <span class="o">=</span> <span class="n">p_rk</span> <span class="o">=</span> <span class="n">p0</span>
-    
-    <span class="c1"># calculate solutions</span>
-    <span class="n">p_ee</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_ee</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">exp_euler_1step</span><span class="p">)</span>
-    <span class="n">p_cn</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_cn</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">cn_1step</span><span class="p">)</span>
-    <span class="n">p_rk</span> <span class="o">=</span> <span class="n">simulate_cobweb</span><span class="p">(</span><span class="n">p_rk</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">rk_1step</span><span class="p">)</span>
-    
-    <span class="c1"># new errors</span>
-    <span class="n">ee_error</span> <span class="o">=</span> <span class="n">p_ee</span> <span class="o">-</span> <span class="n">p_analytical</span>
-    <span class="n">cn_error</span> <span class="o">=</span> <span class="n">p_cn</span> <span class="o">-</span> <span class="n">p_analytical</span>
-    <span class="n">rk_error</span> <span class="o">=</span> <span class="n">p_rk</span> <span class="o">-</span> <span class="n">p_analytical</span>
-    
-    <span class="c1"># convergence</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;delta = 1/</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">:&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s1">&#39;Explicit Euler scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_ee</span><span class="si">:</span><span class="s1">.4e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error = </span><span class="si">{</span><span class="n">ee_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error ratio = </span><span class="si">{</span><span class="n">ee_last_error</span> <span class="o">/</span> <span class="n">ee_error</span><span class="si">:</span><span class="s1">.3</span><span class="si">}</span><span class="s1">&#39;</span>
-    <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s1">&#39;Crank-Nicolson scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_cn</span><span class="si">:</span><span class="s1">.4e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error = </span><span class="si">{</span><span class="n">cn_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error ratio = </span><span class="si">{</span><span class="n">cn_last_error</span> <span class="o">/</span> <span class="n">cn_error</span><span class="si">:</span><span class="s1">.3</span><span class="si">}</span><span class="s1">&#39;</span>
-    <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s1">&#39;Runge-Kutta scheme </span><span class="se">\n</span><span class="s1"> current value: p = </span><span class="si">{</span><span class="n">p_rk</span><span class="si">:</span><span class="s1">.4e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error = </span><span class="si">{</span><span class="n">rk_error</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">;</span><span class="se">\t</span><span class="s1"> error ratio = </span><span class="si">{</span><span class="n">rk_last_error</span> <span class="o">/</span> <span class="n">rk_error</span><span class="si">:</span><span class="s1">.3</span><span class="si">}</span><span class="s1">&#39;</span>
-    <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Note how the error ratio of the Runge-Kutta method converges to 16. That means that as we take time increments of half the size, the errors are only a sixteenth of their previous size. Even though a few extra steps of computation are necessary, the improvement in convergence means we can reach the same level of accuracy at a lower computational cost.</p>
-
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="BONUS-EXERCISE">BONUS EXERCISE<a class="anchor-link" href="#BONUS-EXERCISE">&#182;</a></h5><p>Implement the logistic growth function $x' = rx(1-x)$ using any method of your choice!</p>
-
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Systems-of-non-linear-equations">Systems of non-linear equations<a class="anchor-link" href="#Systems-of-non-linear-equations">&#182;</a></h3><p>Consider the system of Tutorial 5, exercise 1:</p>
-<p>$\begin{align}
-    z_1' &amp;= z_2(z_1 + 1)\\
-    z_2' &amp;= z_1(z_2 + 3)
-\end{align}$</p>
-<p>Implementing simulation methods for systems of non-linear equations should bring no surprises to you: instead of calculating the derivative for one variable, we calculate the derivatives of all state variables, and increment all variables according to their respective laws of motion.</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Write four separate functions:</p>
-<ul>
-<li>one that takes the current state vector (numpy array) as input and returns the vector of derivatives at that point (also as a numpy array),</li>
-<li>one that implements a single explicit Euler step,</li>
-<li>one that implements a single Crank-Nicolson step,</li>
-<li>and finally, one that implements a single step of the Runge-Kutta method.</li>
-</ul>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Now implement Newton's method on a single value $u$ at one point in time</p>
 
 </div>
 </div>
@@ -15069,16 +14823,40 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-    <span class="c1"># TO DO</span>
-<span class="k">def</span> <span class="nf">ee_step</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1"># TO DO</span>
-
-<span class="k">def</span> <span class="nf">cn_step</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1"># TO DO</span>
-
-<span class="k">def</span> <span class="nf">rk_step</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="c1"># TO DO</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">uNewton</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Find the optimal value of the control variable u at one point in time</span>
+<span class="sd">    using Newton&#39;s method.</span>
+<span class="sd">    </span>
+<span class="sd">    Critical values to determine satisfactory convergence or iteration</span>
+<span class="sd">    limites are defined in the function to reduce the amount of inputs.</span>
+<span class="sd">    Note that in your own applications, it might make sense to designate </span>
+<span class="sd">    them as input variables.</span>
+<span class="sd">    </span>
+<span class="sd">    Inputs:</span>
+<span class="sd">        H: function object to specify the Hamiltonian</span>
+<span class="sd">        x: value of state variable </span>
+<span class="sd">        u: initial value u</span>
+<span class="sd">        mu: value of co-state variable (shadow price)</span>
+<span class="sd">        t: time index (in case it matters, e.g. when discounting is involved)</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        optimal value for control variable u, given the other variables</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">crit</span> <span class="o">=</span> <span class="mf">1e-6</span>      <span class="c1"># critical value for convergence</span>
+    <span class="n">max_iter</span> <span class="o">=</span> <span class="mi">100</span>   <span class="c1"># maximum amount of iterations</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="mf">0.01</span>       <span class="c1"># step size in numerical differencing scheme</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span>
+        <span class="c1">################</span>
+        <span class="c1"># TO DO:</span>
+        <span class="c1"># One Newton step</span>
+        <span class="c1">################</span>
+        
+        <span class="c1"># check convergence criterion</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dHdu</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">eps</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">crit</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="c1"># return updated control u </span>
+    <span class="k">return</span> <span class="n">u</span>
 </pre></div>
 
      </div>
@@ -15093,7 +14871,65 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Finally, we can simulate this system too.  Let's try different initial conditions to see how it does not always reach the same steady state. Some initial conditions lead to explosive behaviour, some sonverge so a finite steady state. As the explosive ones diverge very fast, we simulate them for shorter time periods. Try out different timestepping functions, so you can verify that they all lead to the same (hopefully correct) result!</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>And finally, update all values in the array of $u$ to the improved guess, simply iterating through the array. Do not use the output of Newton's method $\hat{u}^{(k+1)}$, but the weighted average $u^{(k+1)} = (1-\omega) u^{(k)} + \omega \hat{u}^{(k+1)}$. Only moving part of the way towards the optimal guess can improve stability of the algorithm (less overshooting).</p>
+
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h5 id="SOLUTION">SOLUTION<a class="anchor-link" href="#SOLUTION">&#182;</a></h5>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">update_control</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Mu</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">omega</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Update the entire array of control variable values.</span>
+<span class="sd">    </span>
+<span class="sd">    Imputs:</span>
+<span class="sd">        H: Hamiltonian function object</span>
+<span class="sd">        X: array of state variable x values</span>
+<span class="sd">        U: array of last iterations best guess of control variables u values</span>
+<span class="sd">        Mu: array of co-state variable values</span>
+<span class="sd">        T: time array</span>
+<span class="sd">        omega: step size towards new optimal guess with 0&lt;omega&lt;1</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        updated best guess for control variable array U</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1">################</span>
+    <span class="c1"># TO DO:</span>
+    <span class="c1"># loop through the array of controls and update each entry</span>
+    <span class="c1">################</span>
+    <span class="k">return</span> <span class="n">U</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Finally, we simply put it all together. The function below first defines some variables and arrays. The arrays of the state and co-state are empty for now, while the control variable is an array of zeros. Then we start our iterative algorithm: first create the time series of the state variable, iterating it forward with <code>N</code> Runge-Kutta steps, then we do the same backwards for the co-state. Before we optimise the control variable we store the current value in a separate array as a copy, so once it is optimised, we can compare and check if they differ at all. If they are extremely similar (here we check the Euclidean norm of the difference of both "vectors"), we conclude that the algorithm has converged and break out of the loop. Finally, we return the result.</p>
 
 </div>
 </div>
@@ -15106,139 +14942,63 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2014</span>       <span class="c1"># time increment</span>
-<span class="n">step_func</span> <span class="o">=</span> <span class="n">rk_step</span>  <span class="c1"># define a new name here, so it is easier to change the method for every point at once</span>
-
-<span class="c1"># two different time lengths for stable and unstable starting positions (for plotting purposes)</span>
-<span class="n">T_stable</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">T_unstable</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="c1"># different initial conditions</span>
-<span class="c1"># stable</span>
-<span class="n">za</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">])</span> 
-<span class="n">zb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">])</span>
-<span class="n">zc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.75</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-<span class="c1"># unstable</span>
-<span class="n">zd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.52</span><span class="p">])</span>
-<span class="n">ze</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-
-<span class="n">z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">T_stable</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">z1</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">za</span>
-
-<span class="n">z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">T_stable</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">z2</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">zb</span>
-
-<span class="n">z3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">T_stable</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">z3</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">zc</span>
-
-<span class="n">z4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">T_unstable</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">z4</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">zd</span>
-
-<span class="n">z5</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">T_unstable</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">z5</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ze</span>
-
-<span class="n">U_stable</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T_stable</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span>
-<span class="n">U_unstable</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T_unstable</span><span class="o">/</span><span class="n">delta</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">U_stable</span><span class="p">):</span>
-    <span class="n">z1</span><span class="p">[:,</span> <span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_func</span><span class="p">(</span><span class="n">z1</span><span class="p">[:,</span> <span class="n">u</span><span class="p">],</span> <span class="n">delta</span><span class="p">)</span>
-    <span class="n">z2</span><span class="p">[:,</span> <span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_func</span><span class="p">(</span><span class="n">z2</span><span class="p">[:,</span> <span class="n">u</span><span class="p">],</span> <span class="n">delta</span><span class="p">)</span>
-    <span class="n">z3</span><span class="p">[:,</span> <span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_func</span><span class="p">(</span><span class="n">z3</span><span class="p">[:,</span> <span class="n">u</span><span class="p">],</span> <span class="n">delta</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Optimization function to implement the forward-backward-sweep method </span>
+<span class="sd">    for cases where the transversality condition mu(T)=0 applies.</span>
+<span class="sd">    </span>
+<span class="sd">    Final time T is set to 1.</span>
+<span class="sd">    </span>
+<span class="sd">    Convergence is considered achieved when the optimal guess in the control</span>
+<span class="sd">    variable does not change considerably anymore. To measure this change,</span>
+<span class="sd">    we use the Euclidean norm of the difference between the old and new </span>
+<span class="sd">    optimal time series arrays of u.</span>
+<span class="sd">    </span>
+<span class="sd">    Inputs:</span>
+<span class="sd">        H: Hamiltonian function object</span>
+<span class="sd">        x0: initial state of state variable x</span>
+<span class="sd">        dt: size of time increment (subject to adjustments so equal steps </span>
+<span class="sd">            can be guaranteed)</span>
+<span class="sd">            </span>
+<span class="sd">    Outputs:</span>
+<span class="sd">        x: state variable time series</span>
+<span class="sd">        u: control variable time series</span>
+<span class="sd">        mu: co-state time series</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># these could be function inputs as well:</span>
+    <span class="n">max_iter</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">omega</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="mf">0.01</span>
     
-<span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">U_unstable</span><span class="p">):</span>
-    <span class="n">z4</span><span class="p">[:,</span> <span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_func</span><span class="p">(</span><span class="n">z4</span><span class="p">[:,</span> <span class="n">u</span><span class="p">],</span> <span class="n">delta</span><span class="p">)</span>
-    <span class="n">z5</span><span class="p">[:,</span> <span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_func</span><span class="p">(</span><span class="n">z5</span><span class="p">[:,</span> <span class="n">u</span><span class="p">],</span> <span class="n">delta</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="p">[</span><span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">,</span> <span class="n">z3</span><span class="p">,</span> <span class="n">z4</span><span class="p">,</span> <span class="n">z5</span><span class="p">]:</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-    <span class="c1"># add arrow heads</span>
-    <span class="n">dz1</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">dz2</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">dz1</span><span class="p">,</span> <span class="n">dz2</span><span class="p">,</span> <span class="n">head_width</span><span class="o">=</span><span class="mf">0.075</span><span class="p">)</span>
-
-<span class="c1"># steady states</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-
-<span class="c1"># give the figure a more &quot;mathy&quot; feel by removing the top and left spines, </span>
-<span class="c1"># add arrowheads to the others and make them the z1 and z2 axes of the coordinate system</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_position</span><span class="p">(</span><span class="s1">&#39;zero&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_position</span><span class="p">(</span><span class="s1">&#39;zero&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;top&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">arrow_fmt</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">markersize</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">clip_on</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">get_yaxis_transform</span><span class="p">(),</span> <span class="o">**</span><span class="n">arrow_fmt</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xaxis_transform</span><span class="p">(),</span> <span class="o">**</span><span class="n">arrow_fmt</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$z_1$&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$z_2$&quot;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">ls</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>This figure shows the saddle stability of the steady state in the origin quite nicely.</p>
-<p>A good alternative to phase diagrams for non-linear systems are gradient fields. Those draw little arrows at discrete points of the grid, representing the direction the system takes if it starts from there. We can implement it with the derivatives function above:</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># gridpoints on both axes</span>
-<span class="n">z1_ax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-<span class="n">z2_ax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-
-<span class="c1"># create a 3d grid: one dimension for each axis</span>
-<span class="c1"># 1 dimension because derivatives come in two values (dz1, dz2)</span>
-<span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">z1_ax</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">z2_ax</span><span class="p">)))</span>
-
-<span class="c1"># fill grid</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">z1_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z1_ax</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">z2_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z2_ax</span><span class="p">):</span>
-        <span class="n">grid</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">derivative</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">z1_</span><span class="p">,</span> <span class="n">z2_</span><span class="p">]))</span>
+    <span class="c1"># initialise some variables and arrays</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>              <span class="c1"># number of time steps, as an integer</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">N</span>                   <span class="c1"># adjust dt to fit into interval</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># time array</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>            <span class="c1"># state variable array (empty at first)</span>
+    <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span>                    <span class="c1"># first entry is the initial state</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>           <span class="c1"># empty array for co-state (shadow price)</span>
+    <span class="n">mu</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="c1"># last entry is 0 </span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>            <span class="c1"># intial guess for control variable: array of zeros</span>
+  
+    <span class="c1"># start iterating to update u</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span>
+        <span class="c1"># create time series of state and costate based on u</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">xRK_1step</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">mu</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">muRK_1step</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mu</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dt</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
         
-<span class="c1"># colours will be based on magnitude of change</span>
-<span class="c1"># create a grid with derivatives where total change is scaled between 0 and 1</span>
-<span class="n">col_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">z1_ax</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">z2_ax</span><span class="p">)))</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z1_ax</span><span class="p">)):</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z2_ax</span><span class="p">)):</span>
-        <span class="n">col_grid</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-<span class="c1"># scaling with logistic function - created better distribution of hot and cold colours in my opinion</span>
-<span class="n">col_grid</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">col_grid</span> <span class="o">-</span> <span class="n">col_grid</span><span class="o">.</span><span class="n">mean</span><span class="p">())))</span>
+        <span class="c1"># store last value of u for comparison afterwards</span>
+        <span class="n">u_old</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># new control guess</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">update_control</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">omega</span><span class="p">)</span>
+          
+        <span class="c1"># stopping criterion</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">u_old</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;convergence after </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> iterations&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+            
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span>
 </pre></div>
 
      </div>
@@ -15254,30 +15014,11 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">x0</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">10</span><span class="p">)</span>
 
-<span class="n">cmap</span> <span class="o">=</span> <span class="n">colormaps</span><span class="p">[</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">]</span>
-
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">z1_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z1_ax</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">z2_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z2_ax</span><span class="p">):</span>
-        <span class="n">dz1</span><span class="p">,</span> <span class="n">dz2</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
-        <span class="c1"># scale the length of the arrow</span>
-        <span class="n">length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dz1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">dz2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">dz1_scaled</span> <span class="o">=</span> <span class="mf">0.15</span> <span class="o">*</span> <span class="n">dz1</span> <span class="o">/</span> <span class="n">length</span>
-        <span class="n">dz2_scaled</span> <span class="o">=</span> <span class="mf">0.15</span> <span class="o">*</span> <span class="n">dz2</span> <span class="o">/</span> <span class="n">length</span>
-        
-        <span class="c1"># color according to the magnitude of change</span>
-        <span class="n">col</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="n">col_grid</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">])</span>
-
-        <span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span>
-            <span class="n">z1_</span><span class="p">,</span> <span class="n">z2_</span><span class="p">,</span> <span class="n">dz1_scaled</span><span class="p">,</span> <span class="n">dz2_scaled</span><span class="p">,</span> 
-            <span class="n">color</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">head_width</span><span class="o">=</span><span class="mf">0.035</span><span class="p">,</span> <span class="n">length_includes_head</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
-
-<span class="c1"># steady states</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lw</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mu</span> <span class="o">=</span> <span class="n">optimize</span><span class="p">(</span><span class="n">Hamiltonian</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -15292,38 +15033,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Note how I scaled the magnitudes of change (length of the vectors) by the logistic function</p>
-<p>$\begin{equation}
-    \tilde{x} = \frac{1}{1 + exp(-0.5(x-\bar{x}))}
-\end{equation}$</p>
-<p>The primary reason was to rescale the lengths so that they lie within $\tilde{x}\in[0,1]$, because that can be used by the colormap I am applying to create a colour scheme. I could have used a more simple regularization method, such as</p>
-<p>$\begin{equation}
-    \tilde{x} = \frac{x - min(x)}{max(x) - min(x)}
-\end{equation}$</p>
-<p>However, upon trying it out, I found the distribution of colours quite uninformative - try it yourself, if you are interested. The logistic scaling created a more interesting colour scheme.</p>
-<p>The "coolwarm" colormap provides a quite intuitive scheme for magnitudes of change, but if you have issues such as colour blindness, feel free to try some alternatives ("viridis", "jet", "hot", "gist_heat", "gnuplot", "rainbow", "plasma", "inferno", "terrain", "ocean")</p>
-
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Finding-fixed-points">Finding fixed points<a class="anchor-link" href="#Finding-fixed-points">&#182;</a></h3><p>Another common problem in many numerical applications is the detection of fixed points or determining roots (zeros). Other examples include optimisation, i.e. finding values of a variable at which some function has a zero-derivative. Here, the roots of our differential equation of the form $x' = f(x,t) = 0$ represent the steady states of a dynamic model, so this is a good opportunity to look into it.</p>
-<p>One of the simplest, yet still a powerful method is Netwon's method. The method is iterative, i.e. we start from a random "guess" and then update that guess, try from that updated guess again, and so on. The specific updating rule is as follows:</p>
-<p>$\begin{equation}
-    x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}
-\end{equation}$</p>
-<p>Intuitively that means that we follow the tangent line of the function at our current guess and set our next guess to be the root of that tangent line. See the figure below to illustrate this updating mechanism. It should be intuitively clear, why this generally takes us towards the roots of a function, at least most of the time. This step can be performed step over and over again to approximate the roots of a function, without having to calculate it by hand. We have to implement a stopping criterion of course, e.g. we break out of this process once we have found a value at which the function is close enough to zero.</p>
-<p>In the case of higher dimensions we have to replace derivatives with the Jacobian matrix, but otherwise it is the same. Consider a system of $n$ state variables, denoted as a vector $\mathbf{x}$, and the dynamics are described by the vector-valued function $F: \mathbb{R}^n\rightarrow\mathbb{R}^n$, i.e. $\mathbf{x}' = F(\mathbf{x})$. The updating scheme to find $\mathbf{x}'=0$ is then</p>
-<p>$\begin{equation}
-    \mathbf{x}_{n+1} = \mathbf{x}_n - J_F(\mathbf{x_n})^{-1}F(\mathbf{x_n})
-\end{equation}$</p>
-<p>where $J_F(\mathbf{x_n})$ is the Jacobian of $F$ at $\mathbf{x}_n$.</p>
+<p>Find below a graphical representation of the optimal solutions of state and control variables:</p>
 
 </div>
 </div>
@@ -15337,57 +15047,17 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;One step of Newton&#39;s method&quot;</span><span class="p">)</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
-<span class="c1"># the function of which we want to find the roots</span>
-<span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">3</span> <span class="o">-</span> <span class="mf">0.5</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Optimal solution for state and control variables&quot;</span><span class="p">)</span>
 
-<span class="n">x0</span> <span class="o">=</span> <span class="mf">2.5</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="c1"># tangent slope at x=2</span>
-<span class="n">slope</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">x0</span><span class="o">**</span><span class="mi">2</span>
-<span class="n">intercept</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">-</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">x0</span>
-<span class="n">tangent</span> <span class="o">=</span> <span class="n">slope</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">625</span><span class="p">:]</span> <span class="o">+</span> <span class="n">intercept</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;state&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;control&quot;</span><span class="p">)</span>
 
-<span class="c1"># plot the function and the tangent at point x0</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">625</span><span class="p">:],</span> <span class="n">tangent</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;tangent&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lw</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
 
-<span class="c1"># vertical line to indicate x0</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="n">x0</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
-
-<span class="c1"># this is the equation to find the next value of x</span>
-<span class="c1"># here we use it to find the point for an accurate graphical representation</span>
-<span class="n">x1</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">func</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">/</span> <span class="n">slope</span>
-
-<span class="c1"># custom ticks and ticklabels to include x_0 and x_1</span>
-<span class="n">xticks_major</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span> 
-<span class="n">xticks_minor</span> <span class="o">=</span> <span class="p">[</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">]</span>
-<span class="n">xticklabels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;$x_0$&quot;</span><span class="p">,</span> <span class="s2">&quot;$x_1$&quot;</span><span class="p">]</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">xticks_major</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="o">=</span><span class="n">xticks_minor</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">xticklabels</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1">### stylistic stuff</span>
-
-<span class="c1"># text to findicate the value f(x0)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">2.2</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="s2">&quot;$f(x_0)$&quot;</span><span class="p">)</span>
-
-<span class="c1"># grid lines</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lw</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
-
-<span class="c1"># give the figure a more &quot;mathy&quot; feel by removing the top and left spines, </span>
-<span class="c1"># add arrowheads to the others and make them the z1 and z2 axes of the coordinate system</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_position</span><span class="p">(</span><span class="s1">&#39;zero&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_position</span><span class="p">(</span><span class="s1">&#39;zero&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;top&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">arrow_fmt</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">markersize</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">clip_on</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">get_yaxis_transform</span><span class="p">(),</span> <span class="o">**</span><span class="n">arrow_fmt</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xaxis_transform</span><span class="p">(),</span> <span class="o">**</span><span class="n">arrow_fmt</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15395,145 +15065,6 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Consider Solow's model of economic growth as an example again: $k' = f(k) = sk^{\alpha} - \gamma k$. We know how to find the steady states of the model, but let us implement Newton's method to let the computer find it for us. Fill out the remaining parts of the functions below, which implements one iteration of the method:</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">k_prime</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    calculate the rate of change of capital given the current amount of capital k&#39; = f(k)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="c1"># TO DO</span>
-
-<span class="k">def</span> <span class="nf">k_doubleprime</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    calculate the derivative of the rate of change of capital k&#39;&#39; = f&#39;(k)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="c1"># TO DO</span>
-
-<span class="k">def</span> <span class="nf">newton_solow_1step</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
-    <span class="c1"># TO DO</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Implement the remaining parts of the iterative procedure in the function below. Inputs <code>k</code>, <code>alpha</code>, <code>s</code>, <code>gamma</code> are well-known by now. <code>max_iter</code> specifies the maximum number of iterations we perform before "giving up" and <code>crit</code> is the error that we consider small enough to be satisfied with the convergence.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">newton_solow</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">crit</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span> <span class="c1"># even if we do not converge, we have to stop eventually</span>
-        <span class="c1"># TODO: </span>
-        <span class="c1">#    - newton step</span>
-        <span class="c1">#    - check if we have converged after every step</span>
-        <span class="c1">#    - repeat</span>
-        
-    <span class="c1"># finally, we return our estimate</span>
-    <span class="k">return</span> <span class="n">k</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.3</span>   <span class="c1"># Cobb-Douglas exponent</span>
-<span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.1</span>   <span class="c1"># depreciation rate of capital</span>
-<span class="n">s</span> <span class="o">=</span> <span class="mf">0.2</span>       <span class="c1"># savings rate</span>
-<span class="n">k0</span> <span class="o">=</span> <span class="mf">0.5</span>      <span class="c1"># initial capital</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;starting from initial value k0 = </span><span class="si">{</span><span class="n">k0</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;steady state found at k=</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">newton_solow</span><span class="p">(</span><span class="n">k0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">),</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-
-<span class="n">k0</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;starting from initial value k0 = </span><span class="si">{</span><span class="n">k0</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;steady state found at k=</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">newton_solow</span><span class="p">(</span><span class="n">k0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">),</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Note how the function actually has two steady states: the one you already know, and the one in the origin. Multiple steady states often occur in non-linear systems, and since initial guesses are typically random, it is important to try different starting points!</p>
-<h5 id="BONUS-EXERCISE">BONUS EXERCISE<a class="anchor-link" href="#BONUS-EXERCISE">&#182;</a></h5><p>Implement Newton's method on the 2-dimensional system:</p>
-<p>$\begin{align}
-    z_1' &amp;= z_2(z_1 + 1)\\
-    z_2' &amp;= z_1(z_2 + 3)
-\end{align}$</p>
-
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Bonus:-Numerical-differencing">Bonus: Numerical differencing<a class="anchor-link" href="#Bonus:-Numerical-differencing">&#182;</a></h3><p>Sometimes the derivative of a function may not be easy to calculate, or you don't know the exact function of the dynamic model you are analysing. That can be particularly relevant when you are working with empirical data for which you do not know the exact data-generating function. In that case, numerical differencing comes in handy. Consider the definition of derivatives:</p>
-<p>$f'(x) = \underset{h\rightarrow0}{lim}\frac{f(x+h) - f(x)}{h}$.</p>
-<p>We cannot actually implement infinitesimally small steps, but we can approximate derivatives with finite differences, using finitely small values of $h$:</p>
-<p>$f'(x)\approx\frac{f(x+h) - f(x)}{h}; \hspace{0.5cm}h&gt;0$.</p>
-<p>We can use forward or backwards differencing ($+h$ or $-h$), but a good option is usually central differences:</p>
-<p>$f'(x)\approx\frac{f(x+\frac{h}{2}) - f(x-\frac{h}{2})}{h}$.</p>
-<p>Since we have to evaluate the function at two points anyway, this does not come at a significantly higher computational cost either.</p>
-<h5 id="BONUS-EXERCISE">BONUS EXERCISE<a class="anchor-link" href="#BONUS-EXERCISE">&#182;</a></h5><p>Implement the Newton method on the Solow model again, but now use finite difference approximations instead of the analytical derivative. I.e. You do not use the function <code>k_doubleprime()</code>, but only the differences in values of <code>k_prime()</code> to approximate derivatives.</p>
-
-</div>
-</div>
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">

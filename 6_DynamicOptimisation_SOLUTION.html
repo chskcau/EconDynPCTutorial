@@ -14715,10 +14715,10 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="Numerical-differencing">Numerical differencing<a class="anchor-link" href="#Numerical-differencing">&#182;</a></h3><p>It was introduced as a bonus exercise in the previous tutorial, but now you cannot avoid it anymore. Recall the principles that were discussed:</p>
 <p>Sometimes the derivative of a function may not be easy to calculate, or you don't know the exact function of the dynamic model you are analysing. That can be particularly relevant when you are working with empirical data for which you do not know the exact data-generating function. In that case, numerical differencing comes in handy. Consider the definition of derivatives:</p>
-<p>$f'(x) = \underset{h\rightarrow0}{lim}\frac{f(x+\epsilon) - f(x)}{\epsilon}$.</p>
+<p>$f'(x) = \underset{\epsilon\rightarrow0}{lim}\frac{f(x+\epsilon) - f(x)}{\epsilon}$.</p>
 <p>We cannot actually implement infinitesimally small steps, but we can approximate derivatives with finite differences, using finitely small values of $h$:</p>
 <p>$f'(x)\approx\frac{f(x+\epsilon) - f(x)}{\epsilon}; \hspace{0.5cm}h&gt;0$.</p>
-<p>We can use forward or backwards differencing ($+h$ or $-h$), but a good option is usually central differences:</p>
+<p>We can use forward or backwards differencing ($+\epsilon$ or $-\epsilon$), but a good option is usually central differences:</p>
 <p>$f'(x)\approx\frac{f(x+\frac{\epsilon}{2}) - f(x-\frac{\epsilon}{2})}{\epsilon}$.</p>
 <p>Since we have to evaluate the function at two points anyway, this does not come at a significantly higher computational cost either.</p>
 <h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Complete the two functions $\frac{\partial H}{\partial u}$ and $\frac{\partial H}{\partial x}$ using numerical differencing (central difference quotient) below. <code>H</code> is the Hamiltonian function, which we defined above (and which can be exchanged flexibly if the problem changes), <code>x</code>, <code>u</code>, $\mu$, <code>t</code> are following the standard notation of the course. They represent the point at which the function is to be evaluated. Finally, <code>eps</code> is the parameter that defines the size of the difference we will evaluate, $\epsilon$ in the description above. We do not need to differentiate with respect to $\mu$, since it only leads to the state equation, which we know already.</p>
@@ -15165,9 +15165,9 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 
 
 
-<div id="44d3edba-e422-49b5-ab6b-f2897c586386" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="ab939c6a-0ebc-403f-a5e7-eb97dc452602" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('44d3edba-e422-49b5-ab6b-f2897c586386');
+var element = document.getElementById('ab939c6a-0ebc-403f-a5e7-eb97dc452602');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -16150,7 +16150,7 @@ if (IPython.notebook.kernel !== null) {
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.legend.Legend at 0x1ef4e8e99d0&gt;</pre>
+<pre>&lt;matplotlib.legend.Legend at 0x202275f5e50&gt;</pre>
 </div>
 
 </div>

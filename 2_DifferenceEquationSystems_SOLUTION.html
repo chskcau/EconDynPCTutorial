@@ -14645,7 +14645,7 @@ $\left(\begin{matrix}
         \left(\begin{matrix}
             0 \\ 15
         \end{matrix}\right)$</p>
-<p>Make sure to use np.matmul() for matrix multiplication of arrays!</p>
+<p>Make sure to use matrix multiplication of arrays (<code>np.matmul()</code> or the <code>@</code> operator)!</p>
 
 </div>
 </div>
@@ -14674,7 +14674,7 @@ $\left(\begin{matrix}
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Create the vectors yz_0, g, and the coefficient matrix A:</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Create the vectors <code>yz_0</code>, <code>g</code>, and the coefficient matrix <code>A</code>:</p>
 
 </div>
 </div>
@@ -14717,6 +14717,7 @@ $\left(\begin{matrix}
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Write a for loop to iterate through the system $T$ times. Store the results in a $2\times (T+1)$ numpy array (one row per variable). Note that, unlike Python lists, numpy arrays are not variable in size. Hence, we first create an empty array of the size we will need to store all results. The second dimension is $T+1$, not $T$ because we will obtain $T$ results, and we start with one set of initial values.</p>
+<p>Implementing the for-loop is identical to the last tutorial, but now you have to be careful to use correct indexing, so that simulation results are stored correctly in the pre-defined array.</p>
 
 </div>
 </div>
@@ -14736,10 +14737,11 @@ $\left(\begin{matrix}
 <span class="c1"># store initial values in results array</span>
 <span class="n">results</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">yz_0</span>
 
-<span class="c1"># before we apply the equation (function above) iteratively, a few checks to ensure the matrix and vector dimensions match</span>
-<span class="k">assert</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># square matrix</span>
-<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># same length of vector and matrix</span>
-<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">g</span><span class="o">.</span><span class="n">shape</span> <span class="c1"># same length of vectors</span>
+<span class="c1"># before we apply the equation (function above) iteratively,</span>
+<span class="c1"># a few checks to ensure the matrix and vector dimensions match</span>
+<span class="k">assert</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>     <span class="c1"># square matrix</span>
+<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># same length of vector and matrix</span>
+<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">g</span><span class="o">.</span><span class="n">shape</span>        <span class="c1"># same length of vectors</span>
 
 <span class="c1"># loop</span>
 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
@@ -14890,9 +14892,9 @@ $\left(\begin{matrix}
 
 
 
-<div id="aa80862e-b0d7-4f86-8854-91e876220527" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="664461b5-631b-4717-b899-2322c2bfa600" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('aa80862e-b0d7-4f86-8854-91e876220527');
+var element = document.getElementById('664461b5-631b-4717-b899-2322c2bfa600');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -15878,7 +15880,7 @@ if (IPython.notebook.kernel !== null) {
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.legend.Legend at 0x27391ebfe20&gt;</pre>
+<pre>&lt;matplotlib.legend.Legend at 0x2773384bf70&gt;</pre>
 </div>
 
 </div>
@@ -15908,7 +15910,7 @@ if (IPython.notebook.kernel !== null) {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="2.2-Second-order-difference-equation-as-first-order-2d-system">2.2 Second-order difference equation as first-order 2d system<a class="anchor-link" href="#2.2-Second-order-difference-equation-as-first-order-2d-system">&#182;</a></h3><p>In the second exercise, we will convert the second-order difference equation from the first PC tutorial $y_t = 1.1y_{t-1} - 0.6y_{t-2} + 1100$ into a 2-dimensional system of first-order equations.</p>
 <h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>First, set up the first-order system (2d system of first-order differential equations).</p>
-<p>Use as initial conditions the same as last time: $y_0 = 1300$, $y_1 = 1600$, or $y_1 = 1600$ and $z_1 = 1300$. You can then apply your 1-step function from above, with a new initial vector, and a different coefficient matrix $A$ and inhomogeneous part $g$.</p>
+<p>Use as initial conditions the same as last time: $y_0 = 1300$, $y_1 = 1600$, or $y_1 = 1600$ and $z_1 = 1300$.  You can then apply your 1-step function <code>system_1step</code> from above, with a new initial vector <code>yz_0</code>, and a different coefficient matrix <code>A</code> and inhomogeneous part <code>g</code>.</p>
 <p>Try to re-write the system on paper first, that will make it easier.</p>
 
 </div>
@@ -16083,9 +16085,9 @@ if (IPython.notebook.kernel !== null) {
 
 
 
-<div id="417e30b5-93a5-4c28-9771-4391481090fa" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="bd0bb8e5-58c9-445c-9c0c-4a09524860da" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('417e30b5-93a5-4c28-9771-4391481090fa');
+var element = document.getElementById('bd0bb8e5-58c9-445c-9c0c-4a09524860da');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -17071,7 +17073,7 @@ if (IPython.notebook.kernel !== null) {
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.legend.Legend at 0x273926145b0&gt;</pre>
+<pre>&lt;matplotlib.legend.Legend at 0x27733fa3b80&gt;</pre>
 </div>
 
 </div>

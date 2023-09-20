@@ -14610,7 +14610,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="1.1-First-order-difference-equation:-Cobweb-model">1.1 First-order difference equation: Cobweb model<a class="anchor-link" href="#1.1-First-order-difference-equation:-Cobweb-model">&#182;</a></h3><p>In the first exercise, we are going to look at a simple first-order difference equation, the basic version of the Cobweb model from the first tutorial. The equation reads</p>
+<h3 id="1.1-First-order-difference-equation:-Cobweb-model">1.1 First-order difference equation: Cobweb model<a class="anchor-link" href="#1.1-First-order-difference-equation:-Cobweb-model">&#182;</a></h3><p>In the first exercise, we are going to look at a simple first-order difference equation, the basic version of the Cobweb model from the first tutorial. The equation we recover from the model is</p>
 <p>$p_t = -\frac{\delta}{\beta}p_{t-1}+\frac{\alpha + \gamma}{\beta}$</p>
 <p>It is generally good practice in programming to separate different parts of the procedure, so it is easier to keep a good overview of the code. Code that is used multiple times should be wrapped in a function. In this case, a single line (the equation) suffices for the single time step and hence it wouldn't be so necessary to write a separate function for it. However, it still seems appropriate to break up the problem into smaller parts, at least for educational purposes.</p>
 <h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Write the function for 1 time step (i.e. from time $t$ to $t+1$) in the cell below. It takes as arguments the current price, as well as the model parameters $\alpha$, $\beta$, $\gamma$, $\delta$, and returns the next period's price.</p>
@@ -14654,7 +14654,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Now we have to iterate this equation several times in order to analyse the dynamic behaviour of the model. Write a for loop that applies your 1-step function $T$ times ($T$ and the model parameters are defined below, feel free to play around with the values) and store the results in the results list.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Now we have to iterate this equation several times in order to analyse the dynamic behaviour of the model. Write the for-loop that applies your 1-step function $T$ times ($T$ and the model parameters are defined below, feel free to play around with the values) and store the results in the results list (append the new price after every iteration).</p>
 
 </div>
 </div>
@@ -14797,9 +14797,9 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 
 
 
-<div id="1e48c412-f1f8-4398-82ff-76b210e85438" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="6e56147c-6859-4adb-82b8-645af66ad9be" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('1e48c412-f1f8-4398-82ff-76b210e85438');
+var element = document.getElementById('6e56147c-6859-4adb-82b8-645af66ad9be');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};
@@ -15857,7 +15857,7 @@ if (IPython.notebook.kernel !== null) {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Run this model $T$ times (write a for loop)</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Write a for-loop that runs this model $T$ times</p>
 
 </div>
 </div>
@@ -15942,9 +15942,9 @@ if (IPython.notebook.kernel !== null) {
 
 
 
-<div id="9b74e635-3029-4b04-9cee-5a5529469b90" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="a6532b36-590c-4968-ba01-553a99d5d858" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('9b74e635-3029-4b04-9cee-5a5529469b90');
+var element = document.getElementById('a6532b36-590c-4968-ba01-553a99d5d858');
 /* Put everything inside the global mpl namespace */
 /* global mpl */
 window.mpl = {};

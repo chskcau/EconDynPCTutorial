@@ -14635,7 +14635,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">system_1step</span><span class="p">(</span><span class="n">yz_t</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
-    <span class="c1"># TODO</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14650,7 +14650,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Create the vectors yz_0, g, and the coefficient matrix A:</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Create the vectors <code>yz_0</code>, <code>g</code>, and the coefficient matrix <code>A</code>:</p>
 
 </div>
 </div>
@@ -14663,9 +14663,9 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">yz_0</span> <span class="o">=</span> <span class="c1"># TODO</span>
-<span class="n">A</span> <span class="o">=</span> <span class="c1"># TODO</span>
-<span class="n">g</span> <span class="o">=</span> <span class="c1"># TODO</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">yz_0</span> <span class="o">=</span> <span class="c1"># TO DO</span>
+<span class="n">A</span> <span class="o">=</span> <span class="c1"># TO DO</span>
+<span class="n">g</span> <span class="o">=</span> <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14681,6 +14681,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Write a for loop to iterate through the system $T$ times. Store the results in a $2\times (T+1)$ numpy array (one row per variable). Note that, unlike Python lists, numpy arrays are not variable in size. Hence, we first create an empty array of the size we will need to store all results. The second dimension is $T+1$, not $T$ because we will obtain $T$ results, and we start with one set of initial values.</p>
+<p>Implementing the for-loop is identical to the last tutorial, but now you have to be careful to use correct indexing, so that simulation results are stored correctly in the pre-defined array.</p>
 
 </div>
 </div>
@@ -14700,14 +14701,15 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <span class="c1"># store initial values in results array</span>
 <span class="n">results</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">yz_0</span>
 
-<span class="c1"># before we apply the equation (function above) iteratively, a few checks to ensure the matrix and vector dimensions match</span>
-<span class="k">assert</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># square matrix</span>
-<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># same length of vector and matrix</span>
-<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">g</span><span class="o">.</span><span class="n">shape</span> <span class="c1"># same length of vectors</span>
+<span class="c1"># before we apply the equation (function above) iteratively, </span>
+<span class="c1"># a few checks to ensure the matrix and vector dimensions match</span>
+<span class="k">assert</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>     <span class="c1"># square matrix</span>
+<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># same length of vector and matrix</span>
+<span class="k">assert</span> <span class="n">yz_0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">g</span><span class="o">.</span><span class="n">shape</span>        <span class="c1"># same length of vectors</span>
 
 <span class="c1"># implement the loop!</span>
 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
-    <span class="c1"># TODO</span>
+    <span class="c1"># TO DO</span>
 </pre></div>
 
      </div>
@@ -14824,7 +14826,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="2.2-Second-order-difference-equation-as-first-order-2d-system">2.2 Second-order difference equation as first-order 2d system<a class="anchor-link" href="#2.2-Second-order-difference-equation-as-first-order-2d-system">&#182;</a></h3><p>In the second exercise, we will convert the second-order difference equation from the first PC tutorial $y_t = 1.1y_{t-1} - 0.6y_{t-2} + 1100$ into a 2-dimensional system of first-order equations.</p>
 <h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>First, set up the first-order system (2d system of first-order differential equations).</p>
-<p>Use as initial conditions the same as last time: $y_0 = 1300$, $y_1 = 1600$. You can then apply your 1-step function from above, with a new initial vector, and a different coefficient matrix $A$ and inhomogeneous part $g$.</p>
+<p>Use as initial conditions the same as last time: $y_0 = 1300$, $y_1 = 1600$. You can then apply your 1-step function <code>system_1step</code> from above, with a new initial vector <code>yz_0</code>, and a different coefficient matrix <code>A</code> and inhomogeneous part <code>g</code>.</p>
 <p>Try to re-write the system on paper first, that will make it easier.</p>
 
 </div>
@@ -14838,14 +14840,14 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">yz_0</span> <span class="o">=</span> <span class="c1"># TODO</span>
-<span class="n">A</span> <span class="o">=</span> <span class="c1"># TODO</span>
-<span class="n">g</span> <span class="o">=</span> <span class="c1"># TODO</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">yz_0</span> <span class="o">=</span> <span class="c1"># TO DO</span>
+<span class="n">A</span> <span class="o">=</span> <span class="c1"># TO DO</span>
+<span class="n">g</span> <span class="o">=</span> <span class="c1"># TO DO</span>
 
 <span class="n">T</span> <span class="o">=</span> <span class="mi">25</span>
 
-<span class="n">results2</span> <span class="o">=</span> <span class="c1"># TODO: results array (checkabove howitwas done there)</span>
-<span class="c1"># TODO: insert the initial state into the results array</span>
+<span class="n">results2</span> <span class="o">=</span> <span class="c1"># TO DO: results array (checkabove howitwas done there)</span>
+<span class="c1"># TO DO: insert the initial state into the results array</span>
 
 <span class="c1"># iterate T times</span>
 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>

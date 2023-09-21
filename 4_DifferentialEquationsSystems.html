@@ -14579,7 +14579,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="4-Systems-of-Differential-Equations">4 Systems of Differential Equations<a class="anchor-link" href="#4-Systems-of-Differential-Equations">&#182;</a></h1><p>In this tutorial, two <em>implicit</em> timestepping methods are introduced, the implicit Euler and the Crank-Nicolson schemes. Once you are familiar with them, we will apply them to systems of first-order differential equations. We will also transform higher-order differential equations into systems of first-order equations, and analyse them as such.</p>
+<h1 id="4-Systems-of-Differential-Equations">4 Systems of Differential Equations<a class="anchor-link" href="#4-Systems-of-Differential-Equations">&#182;</a></h1><p>In this tutorial, two <em>implicit</em> timestepping methods are introduced, the implicit Euler and the Crank-Nicolson schemes. Once you are familiar with them, we will apply them to systems of first-order differential equations. We will also transform higher-order differential equations into systems of first-order equations, and analyse them as such. Of course they can also be applied two regular differntial equations, and the methods from the last tutorial could be applied to systems of differential equations too.</p>
 
 </div>
 </div>
@@ -14621,7 +14621,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <p>I.e. we move along the tangent slope of the next point instead of the current. The actual timestepping scheme is given implicitly as the solution to a fixed-point problem. In the example of the exponential function above:</p>
 <p>$y(t+\delta) = y(t) -\lambda y(t) = (1-\delta\lambda)y(t+\delta)$</p>
 <p>$\Leftrightarrow y(t+\delta) = \frac{1}{1+\delta\lambda}y(t)$</p>
-<p><em>(Note the analogy of forward and backward solutions of exogenous sequences using lag polynomials).</em></p>
+<p><em>(Note the analogy to forward and backward solutions of exogenous sequences using lag polynomials).</em></p>
 <h3 id="Crank-Nicolson">Crank-Nicolson<a class="anchor-link" href="#Crank-Nicolson">&#182;</a></h3><p>As you noticed in the last tutorial, the explicit Euler method creates a bias if the second derivative is non-zero. The same is true for the implicit method, but the bias is in the opposite direction. A straightforward solution is to take the mean of both, so that the biases cancel each other out (completely, if no effects of orders higher than two are present):</p>
 <p>$y(t+\delta) \approx y(t) + \frac{\delta}{2}\left[f\left(y\left(t\right), t\right) + f\left(y\left(t+\delta\right), t+\delta\right)\right]$</p>
 <p>As the values at the next time step are on both sides, this is also an implicit scheme that requires finding the solution to a fixed-point equation.</p>
@@ -14875,7 +14875,8 @@ $</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">ee_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># explicit Euler</span>
+<span class="k">def</span> <span class="nf">ee_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="c1"># TO DO</span>
 </pre></div>
 
@@ -14892,7 +14893,8 @@ $</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">ie_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># implicit Euler</span>
+<span class="k">def</span> <span class="nf">ie_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="c1"># TO DO</span>
 </pre></div>
 
@@ -14909,7 +14911,8 @@ $</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">rg_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Runge</span>
+<span class="k">def</span> <span class="nf">rg_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="c1"># TO DO</span>
 </pre></div>
 
@@ -14926,7 +14929,8 @@ $</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">cn_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Crank-Nicolson</span>
+<span class="k">def</span> <span class="nf">cn_2goods</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="c1"># TO DO</span>
 </pre></div>
 
@@ -14970,7 +14974,7 @@ $</p>
 <span class="sd">        Time series array of values, starting with the initial values</span>
 <span class="sd">    '''</span>
     <span class="c1"># number of time increments</span>
-    <span class="n">U</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">delta</span><span class="p">)</span> <span class="c1"># make sure it is an integer!</span>
+    <span class="n">U</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">delta</span><span class="p">)</span> <span class="c1"># to make sure it is an integer!</span>
     
     <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">U</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">results</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>

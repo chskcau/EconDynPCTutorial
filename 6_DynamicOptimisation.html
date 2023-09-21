@@ -14655,7 +14655,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Optimisation-problem">Optimisation problem<a class="anchor-link" href="#Optimisation-problem">&#182;</a></h3><p>As am example we use the farming problem from Sharp et al. (2021). There is a single crop on a field, of which we denote the amount at time $t$ by $x(t)$. The control, e.g. fertilizer to spur growth, is denoted by $u(t)$. We start with an initial amount (small plants a the beginning of the season) $x(0) = x_0$ and have an indeterminate (free) final state $x(T)$ at the end of the growing season. Hence, we want to grow as much as is economically optimal. The condition $x(T)\mu(T)=0$ then logically implies that $\mu(T)=0$, as it cannot be optimal to not have anything to harvest ($x(T)=0$).</p>
+<h3 id="Optimisation-problem">Optimisation problem<a class="anchor-link" href="#Optimisation-problem">&#182;</a></h3><p>As am example we use the farming problem from Sharp et al. (2021). There is a single crop on a field, of which we denote the amount at time $t$ by $x(t)$. The control, e.g. fertilizer to spur growth, is denoted by $u(t)$. We start with an initial amount (small plants at the beginning of the season) $x(0) = x_0$ and have an indeterminate (free) final state $x(T)$ at the end of the growing season. Hence, we want to grow as much as is economically optimal. The condition $x(T)\mu(T)=0$ then logically implies that $\mu(T)=0$, as it cannot be optimal to not have anything to harvest ($x(T)=0$).</p>
 <p>Plants grow better with more fertilizer, leading to the state equation</p>
 <p>$\begin{equation}
     \frac{dx}{dt} = \gamma x(t) + u(t) 
@@ -14705,7 +14705,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <p>We can use forward or backwards differencing ($+\epsilon$ or $-\epsilon$), but a good option is usually central differences:</p>
 <p>$f'(x)\approx\frac{f(x+\frac{\epsilon}{2}) - f(x-\frac{\epsilon}{2})}{\epsilon}$.</p>
 <p>Since we have to evaluate the function at two points anyway, this does not come at a significantly higher computational cost either.</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Complete the two functions $\frac{\partial H}{\partial u}$ and $\frac{\partial H}{\partial x}$ using numerical differencing (central difference quotient) below. <code>H</code> is the Hamiltonian function, which we defined above (and which can be exchanged flexibly if the problem changes), <code>x</code>, <code>u</code>, $\mu$, <code>t</code> are following the standard notation of the course. They represent the point at which the function is to be evaluated. Finally, <code>eps</code> is the parameter that defines the size of the difference we will evaluate, $\epsilon$ in the description above. We do not need to differentiate with respect to $\mu$, since it only leads to the state equation, which we know already.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>Complete the two functions $\frac{\partial H}{\partial u}$ and $\frac{\partial H}{\partial x}$ using numerical differencing (central difference quotient) below. <code>H</code> is the Hamiltonian function, which we defined above (and which can be exchanged flexibly if the problem changes), <code>x</code>, <code>u</code>, <code>𝜇</code>, <code>t</code> are following the standard notation of the course. They represent the point at which the function is to be evaluated. Finally, <code>eps</code> is the parameter that defines the size of the difference we will evaluate, $\epsilon$ in the description above. We do not need to differentiate with respect to $\mu$, since it only leads to the state equation, which we know already.</p>
 
 </div>
 </div>
@@ -14912,7 +14912,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <span class="sd">    '''</span>
     <span class="c1">################</span>
     <span class="c1"># TO DO:</span>
-    <span class="c1"># loop through the array of controls and update each entry</span>
+    <span class="c1"># loop through the array of controls and update each entry using your Newton function</span>
     <span class="c1">################</span>
     <span class="k">return</span> <span class="n">U</span>
 </pre></div>
@@ -14929,7 +14929,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Finally, we simply put it all together. The function below first defines some variables and arrays. The arrays of the state and co-state are empty for now, while the control variable is an array of zeros. Then we start our iterative algorithm: first create the time series of the state variable, iterating it forward with <code>N</code> Runge-Kutta steps, then we do the same backwards for the co-state. Before we optimise the control variable we store the current value in a separate array as a copy, so once it is optimised, we can compare and check if they differ at all. If they are extremely similar (here we check the Euclidean norm of the difference of both "vectors"), we conclude that the algorithm has converged and break out of the loop. Finally, we return the result.</p>
+<p>Finally, we simply put it all together. The function below first defines some variables and arrays. The arrays of the state and co-state are empty for now, while the control variable is an array of zeros (initial guess). Then we start our iterative algorithm: first create the time series of the state variable, iterating it forward with <code>N</code> Runge-Kutta steps, then we do the same backwards for the co-state. Before we optimise the control variable we store the current value in a separate array as a copy, so once it is optimised, we can compare and check if they differ at all. If they are extremely similar (here we check the Euclidean norm of the difference of both "vectors"), we conclude that the algorithm has converged and break out of the loop. Finally, we return the result.</p>
 
 </div>
 </div>

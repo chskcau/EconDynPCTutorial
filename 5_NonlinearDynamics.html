@@ -14579,8 +14579,8 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="5-Nonlinear-Dynamics">5 Nonlinear Dynamics<a class="anchor-link" href="#5-Nonlinear-Dynamics">&#182;</a></h1><p>So far we have only simulated linear models, which are of course only a small subset of all possible dynamic models. As you have seen in the lectures and tutorials, solving models can become much more complicated when non-linearities are involved, and is often restricted to local analyses of linearised systems around fixed points. Simulating non-linear models however is is not so different to simulating linear models. The only complication is that the fixed point problem that arises in implicit timestepping methods may not always be straightforward to solve.</p>
-<p>In this tutorial you will learn how to circumvent the problem of unsolvable fixed points and we apply it to the Crank-Nicolson method. In the following, we will introduce the Runge-Kutta timestepping scheme, which is a popular method used in many software applications due its excellent convergence properties.</p>
+<h1 id="5-Nonlinear-Dynamics">5 Nonlinear Dynamics<a class="anchor-link" href="#5-Nonlinear-Dynamics">&#182;</a></h1><p>So far we have only simulated linear models, which are of course only a small subset of all possible dynamic models. As you have seen in the lectures and tutorials, solving models can become much more complicated when non-linearities are involved, and is often restricted to local analyses of linearised systems around fixed points. Simulating non-linear models however is is not so different to simulating linear models. It can actually be a useful method, when analytical solutions are hard to come by. The only complication is that the fixed point problem that arises in implicit timestepping methods may not always be straightforward to solve.</p>
+<p>In this tutorial you will learn how to circumvent the problem of unsolvable fixed points and we apply it to the Crank-Nicolson method. In the following, we will introduce the Runge-Kutta timestepping scheme, which is a popular method used in many software applications due to its good trade-off between fast convergence and manageable computational requirements.</p>
 <p>Moreover, we will touch upon numerical methods to find fixed points of generic dynamic models using Newton's method.</p>
 
 </div>
@@ -14805,7 +14805,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     k_4 &amp;= f(y(t) + \delta k_3, t+\delta)
 \end{align}$</p>
 <p>That is, $k_1$ is the slope at the beginning of the interval (Euler step), $k_2$ is the slope at the midpoint of the interval. This midpoint is calculated using $k_1$, i.e. the slope at the beginning of the interval (we would apply this slope in the Runge's central difference method). $k_3$ is also the slope at the midpoint, but now we calculate it using $k_2$, i.e. the estimate of the midpoint slope using the slope we had previously calculated using the slope at the beginning of the interval. $k_4$ is the slope at the endpoint of the interval, calculated using $k_3$. So ultimately, we extrapolate from the rate of change in the beginning ($k_1$) to calculate the midpoint, we use that estimate to calculate the slope at this midpoint ($k_2$), and then re-estimate the slope at the midpoint ($k_3$) with this initial estimate of the slope at this point. Finally, we use the improved midpoint slope estimate to estimate the endpoint and calculate the slope at that value of $y$ ($k_4$). We do not discard any of the slope estimates, as we would in case of the Runge method, where we only use the slope we calculated in the second step, but instead we take a weighted average of all the slopes.</p>
-<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>In order to compare convergence to the true value, we will once more revisit the cobweb model $p' = 45 - 3p$. Implement one step of the classig Runge-Kutta method for this model.</p>
+<h5 id="EXERCISE">EXERCISE<a class="anchor-link" href="#EXERCISE">&#182;</a></h5><p>In order to compare convergence to the true value, we will once more revisit the cobweb model $p' = 45 - 3p$. Implement one step of the classic Runge-Kutta method for this model.</p>
 
 </div>
 </div>
@@ -15094,7 +15094,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Finally, we can simulate this system too.  Let's try different initial conditions to see how it does not always reach the same steady state. Some initial conditions lead to explosive behaviour, some sonverge so a finite steady state. As the explosive ones diverge very fast, we simulate them for shorter time periods. Try out different timestepping functions, so you can verify that they all lead to the same (hopefully correct) result!</p>
+<p>Finally, we can simulate this system too.  Let's try different initial conditions to see how it does not always reach the same steady state. Some initial conditions lead to explosive behaviour, some sonverge to a finite steady state. As the explosive ones diverge very fast, we simulate them for shorter time periods. Try out different timestepping functions, so you can verify that they all lead to the same (hopefully correct) result!</p>
 
 </div>
 </div>
@@ -15238,6 +15238,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z1_ax</span><span class="p">)):</span>
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z2_ax</span><span class="p">)):</span>
         <span class="n">col_grid</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        
 <span class="c1"># scaling with logistic function - created better distribution of hot and cold colours in my opinion</span>
 <span class="n">col_grid</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">col_grid</span> <span class="o">-</span> <span class="n">col_grid</span><span class="o">.</span><span class="n">mean</span><span class="p">())))</span>
 </pre></div>
@@ -15297,7 +15298,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <p>$\begin{equation}
     \tilde{x} = \frac{1}{1 + exp(-0.5(x-\bar{x}))}
 \end{equation}$</p>
-<p>The primary reason was to rescale the lengths so that they lie within $\tilde{x}\in[0,1]$, because that can be used by the colormap I am applying to create a colour scheme. I could have used a more simple regularization method, such as</p>
+<p>The primary reason was to rescale the lengths so that they lie within $\tilde{x}\in[0,1]$, because the colormap I am applying to create a colour scheme takes those values as inputs to determine the colour of the arrows. I could have used a more simple regularization method, such as</p>
 <p>$\begin{equation}
     \tilde{x} = \frac{x - min(x)}{max(x) - min(x)}
 \end{equation}$</p>
@@ -15314,12 +15315,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Finding-fixed-points">Finding fixed points<a class="anchor-link" href="#Finding-fixed-points">&#182;</a></h3><p>Another common problem in many numerical applications is the detection of fixed points or determining roots (zeros). Other examples include optimisation, i.e. finding values of a variable at which some function has a zero-derivative. Here, the roots of our differential equation of the form $x' = f(x,t) = 0$ represent the steady states of a dynamic model, so this is a good opportunity to look into it.</p>
-<p>One of the simplest, yet still a powerful method is Netwon's method. The method is iterative, i.e. we start from a random "guess" and then update that guess, try from that updated guess again, and so on. The specific updating rule is as follows:</p>
+<h3 id="Finding-fixed-points">Finding fixed points<a class="anchor-link" href="#Finding-fixed-points">&#182;</a></h3><p>Another common problem in many numerical applications is the detection of fixed points or determining roots (zeros). Other application examples include optimisation, i.e. finding values of a variable at which some function has a zero-derivative. Here, the roots of our differential equation of the form $x' = f(x,t) = 0$ represent the steady states of a dynamic model, so this is a good opportunity to look into it.</p>
+<p>One of the simplest, yet still powerful method is Netwon's method. The method is iterative, i.e. we start from a random "guess" and then update that guess, try from that updated guess again, and so on. The specific updating rule is as follows:</p>
 <p>$\begin{equation}
     x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}
 \end{equation}$</p>
-<p>Intuitively that means that we follow the tangent line of the function at our current guess and set our next guess to be the root of that tangent line. See the figure below to illustrate this updating mechanism. It should be intuitively clear, why this generally takes us towards the roots of a function, at least most of the time. This step can be performed step over and over again to approximate the roots of a function, without having to calculate it by hand. We have to implement a stopping criterion of course, e.g. we break out of this process once we have found a value at which the function is close enough to zero.</p>
+<p>Intuitively that means that we follow the tangent line of the function at our current guess and set our next guess to be the root of that tangent line. See the figure below to illustrate this updating mechanism. It should be intuitively clear, why this generally takes us towards the roots of a function, at least most of the time. This step can be performed over and over again to approximate the roots of a function, without having to calculate it by hand. We have to implement a stopping criterion of course, e.g. we break out of this process once we have found a value at which the function is close enough to zero.</p>
 <p>In the case of higher dimensions we have to replace derivatives with the Jacobian matrix, but otherwise it is the same. Consider a system of $n$ state variables, denoted as a vector $\mathbf{x}$, and the dynamics are described by the vector-valued function $F: \mathbb{R}^n\rightarrow\mathbb{R}^n$, i.e. $\mathbf{x}' = F(\mathbf{x})$. The updating scheme to find $\mathbf{x}'=0$ is then</p>
 <p>$\begin{equation}
     \mathbf{x}_{n+1} = \mathbf{x}_n - J_F(\mathbf{x_n})^{-1}F(\mathbf{x_n})
@@ -15484,12 +15485,12 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.3</span>   <span class="c1"># Cobb-Douglas exponent</span>
 <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.1</span>   <span class="c1"># depreciation rate of capital</span>
 <span class="n">s</span> <span class="o">=</span> <span class="mf">0.2</span>       <span class="c1"># savings rate</span>
-<span class="n">k0</span> <span class="o">=</span> <span class="mf">0.5</span>      <span class="c1"># initial capital</span>
 
+<span class="n">k0</span> <span class="o">=</span> <span class="mf">0.5</span>      <span class="c1"># initial capital (first starting point)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'starting from initial value k0 = </span><span class="si">{</span><span class="n">k0</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'steady state found at k=</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">newton_solow</span><span class="p">(</span><span class="n">k0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">),</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
 
-<span class="n">k0</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">k0</span> <span class="o">=</span> <span class="mf">0.1</span>      <span class="c1"># initial capital (second starting point)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'starting from initial value k0 = </span><span class="si">{</span><span class="n">k0</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'steady state found at k=</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">newton_solow</span><span class="p">(</span><span class="n">k0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">gamma</span><span class="p">),</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
 </pre></div>

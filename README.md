@@ -6,4 +6,4 @@ As the structure is pre-determined, the first two tutorials are fairly simple, w
 
 Python was chosen as the programming language of choice due to its importance in scientific programming and data science, making it an extremely relevant skill for economics students. The Jupyter notebooks are an ideal editor for these tutorials due to their ease of use and the features that allow adding detailed explanations with markdown formatting and Latex typesetting for equations between the code "cells". Those notebooks are also exported as html files, which anyone can open in a standard browser, in case they are interested in the materials, but would like to implement the solutions in another programming language.
 
-Any translation into other programming languages (e.g. MatLab) would be most welcome!
+Any translation into other programming languages (e.g. MATLAB) would be most welcome!

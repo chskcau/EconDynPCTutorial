@@ -98,8 +98,8 @@ for exponent = 2:10
     
     % convergence
     fprintf("delta = 1/%u:\n", n);
-    fprintf("\tExplicit Euler scheme\n\t\tCurrent value: p = %.3f; error = %.3f; error ratio = %.2f\n", p_ee, ee_error, ee_last_error / ee_error);
-    fprintf("\tCentral difference scheme\n\t\tCurrent value: p = %.3f; error = %.3f; error ratio = %.2f\n", p_re, re_error, re_last_error / re_error);
+    fprintf("\tExplicit Euler scheme:\n\t\tCurrent value: p = %.4f; error = %.4f; error ratio = %.2f\n", p_ee, ee_error, ee_last_error / ee_error);
+    fprintf("\tCentral difference scheme:\n\t\tCurrent value: p = %.4f; error = %.4f; error ratio = %.2f\n", p_re, re_error, re_last_error / re_error);
     fprintf("\n");
 
 end

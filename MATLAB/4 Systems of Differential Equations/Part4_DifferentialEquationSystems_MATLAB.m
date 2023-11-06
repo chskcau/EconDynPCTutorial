@@ -58,25 +58,25 @@ for exponent = 2:5
     ie_last_error = ie_error;
     rg_last_error = rg_error;
     cn_last_error = cn_error;
-    
+
     % starting prices
     p_ee = p0;
     p_ie = p0;
     p_rg = p0;
     p_cn = p0;
-    
+
     % calculate solutions;
-    p_ee = cobweb_simulate_SOLUTION(p_ee, T, n, @cobweb_ee_1step_SOLUTION);
-    p_ie = cobweb_simulate_SOLUTION(p_ie, T, n, @cobweb_ie_1step_SOLUTION);
-    p_rg = cobweb_simulate_SOLUTION(p_rg, T, n, @cobweb_runge_1step_SOLUTION);
-    p_cn = cobweb_simulate_SOLUTION(p_cn, T, n, @cobweb_cn_1step_SOLUTION);
-    
+    p_ee = cobweb_simulate(p_ee, T, n, @cobweb_ee_1step);
+    p_ie = cobweb_simulate(p_ie, T, n, @cobweb_ie_1step);
+    p_rg = cobweb_simulate(p_rg, T, n, @cobweb_runge_1step);
+    p_cn = cobweb_simulate(p_cn, T, n, @cobweb_cn_1step);
+
     % new errors
     ee_error = p_ee - p_analytical;
     ie_error = p_ie - p_analytical;
     rg_error = p_rg - p_analytical;
     cn_error = p_cn - p_analytical;
-    
+
     % convergence
     fprintf("delta = 1/%u:\n", n);
     fprintf("\tExplicit Euler scheme:\n\t\tCurrent value: p = %.4f; error = %.4f; error ratio = %.2f\n", p_ee, ee_error, ee_last_error / ee_error);
@@ -92,7 +92,7 @@ end
 % The implicit Euler method, following the same reasoning as its explicit
 % counterpart, converges proportionally to $\delta$ (first-order
 % convergence).
-% 
+%
 % For $n=2$, we would obtain the explicit Euler time-stepping scheme
 % $p(t+\delta) = (1-3\delta)p(t) + 45\delta = -0.5p(t) + 22.5$, i.e. a
 % first-order difference equation with a negative eigenvalue. The implicit
@@ -102,7 +102,7 @@ end
 % oscillations.
 
 %%% Two-goods model --- EXERCISE
-% 
+%
 % Implement the explicit Euler, implicit Euler, Runge central-difference
 % quotient, and Crank-Nicolson methods in the files twogoods_ee.m,
 % twogoods_ie.m, twogoods_runge.m and twogoods_cn.m. They should take as
@@ -126,7 +126,7 @@ delta = 1/512;
 p = [2; 2];
 
 % TODO: coefficient matrix
-A = ...; 
+A = ...;
 
 results = twogoods_simulate(p, A, T, delta, @twogoods_cn);
 
